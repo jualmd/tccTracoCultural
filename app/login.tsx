@@ -1,98 +1,52 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { router } from 'expo-router';
+import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
-export default function LoginScreen() {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const router = useRouter();
 
   function handleLogin() {
-    // TODO: autenticação real
-    router.replace('/(tabs)');
+    if (!email || !senha) {
+      Alert.alert('Atenção', 'Preencha email e senha.');
+      return;
+    }
+    Alert.alert('Sucesso', 'Login realizado com sucesso!', [
+      { text: 'OK', onPress: () => router.replace('/(tabs)') },
+    ]);
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.titulo}>Traço Cultural</Text>
-      <Text style={styles.subtitulo}>Bem-vindo de volta</Text>
+    <SafeAreaView className="flex-1 bg-background justify-center px-6">
+      <Text className="text-3xl font-bold text-primary mb-2">Catálogo Cultural</Text>
+      <Text className="text-secondary mb-8">Faça login para continuar</Text>
 
       <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
+        className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-text"
+        placeholder="Email"
+        placeholderTextColor="#687076"
         keyboardType="email-address"
         autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
-        style={styles.input}
+        className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-text"
         placeholder="Senha"
-        placeholderTextColor="#999"
+        placeholderTextColor="#687076"
+        secureTextEntry
         value={senha}
         onChangeText={setSenha}
-        secureTextEntry
       />
 
-      <TouchableOpacity style={styles.botao} onPress={handleLogin}>
-        <Text style={styles.botaoTexto}>Entrar</Text>
+      <TouchableOpacity
+        className="bg-primary rounded-lg py-4 items-center"
+        onPress={handleLogin}
+      >
+        <Text className="text-white font-semibold text-base">Entrar</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push('/cadastro')}>
-        <Text style={styles.link}>Não tem conta? <Text style={styles.linkDestaque}>Cadastre-se</Text></Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    backgroundColor: '#fff',
-  },
-  titulo: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#0a7ea4',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitulo: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 16,
-    color: '#11181C',
-  },
-  botao: {
-    backgroundColor: '#0a7ea4',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  botaoTexto: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  link: {
-    textAlign: 'center',
-    color: '#666',
-    fontSize: 14,
-  },
-  linkDestaque: {
-    color: '#0a7ea4',
-    fontWeight: '600',
-  },
-});
