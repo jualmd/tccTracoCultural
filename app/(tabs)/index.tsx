@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { EventCard } from '@/components/event-card';
-import { EVENTS, type Event } from '@/constants/events';
+import { EVENTS } from '@/constants/events';
 import { Theme } from '@/constants/theme';
 
 export default function Home() {
@@ -41,10 +41,6 @@ export default function Home() {
   async function handleLogout() {
     await AsyncStorage.removeItem('@traco:user');
     router.replace('/(tabs)/login');
-  }
-
-  function handleEventPress(event: Event) {
-    router.push({ pathname: '/(tabs)/event-detail', params: { id: event.id } });
   }
 
   return (
@@ -123,7 +119,6 @@ export default function Home() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
-              onPress={() => handleEventPress(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={favorites.has(item.id)}
             />

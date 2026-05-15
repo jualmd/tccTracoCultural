@@ -4,12 +4,11 @@ import type { Event } from '@/constants/events';
 
 type Props = {
   event: Event;
-  onPress: () => void;
   onFavorite: () => void;
   isFavorited: boolean;
 };
 
-export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
+export function EventCard({ event, onFavorite, isFavorited }: Props) {
   return (
     <View
       style={{
@@ -75,24 +74,12 @@ export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.7)" />
           <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginLeft: 5 }}>
             {event.location}
           </Text>
         </View>
-
-        <Pressable
-          onPress={onPress}
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? 'rgba(255,255,255,0.85)' : '#fff',
-            borderRadius: 25,
-            paddingVertical: 9,
-            alignItems: 'center',
-          })}
-        >
-          <Text style={{ color: '#3C2321', fontWeight: '700', fontSize: 13 }}>Ver Mais</Text>
-        </Pressable>
       </View>
     </View>
   );

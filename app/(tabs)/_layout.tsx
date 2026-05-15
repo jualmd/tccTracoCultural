@@ -52,10 +52,11 @@ export default function TabsLayout() {
         />
         <Tabs.Screen
           name="event-detail"
-          options={{
-            href: null,
-            tabBarStyle: { display: 'none' },
-          }}
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="explore"
+          options={{ href: null }}
         />
         <Tabs.Screen
           name="edit-profile"
