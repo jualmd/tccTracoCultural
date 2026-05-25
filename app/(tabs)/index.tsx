@@ -12,12 +12,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { EventCard } from '@/components/event-card';
-import { EVENTS } from '@/constants/events';
+import { EventDetailModal } from '@/components/event-detail-modal';
+import { EVENTS, type Event } from '@/constants/events';
 import { Theme } from '@/constants/theme';
 import { useFavorites } from '@/lib/favorites-context';
 
 export default function Home() {
   const [search, setSearch] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
 
@@ -112,12 +114,21 @@ export default function Home() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
+              onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
             />
           )}
         />
       </SafeAreaView>
+
+      <EventDetailModal
+        event={selectedEvent}
+        visible={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onFavorite={() => selectedEvent && toggleFavorite(selectedEvent.id)}
+        isFavorited={!!selectedEvent && isFavorite(selectedEvent.id)}
+      />
     </LinearGradient>
   );
 }

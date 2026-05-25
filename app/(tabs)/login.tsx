@@ -39,14 +39,31 @@ export default function Login() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const user = {
-        id: 'user_' + Date.now(),
-        name: email.split('@')[0],
-        email,
-        createdAt: new Date().toISOString(),
-      };
-      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-      router.replace('/(tabs)');
+      // Verifica se já existe um usuário salvo com esse email
+      const raw = await AsyncStorage.getItem(USER_STORAGE_KEY);
+      const existing = raw ? JSON.parse(raw) : null;
+
+      if (existing && existing.email === email) {
+        // Usuário já existe: verifica senha salva
+        const savedPassword = await AsyncStorage.getItem('@traco:password');
+        if (savedPassword && savedPassword !== senha) {
+          setErrors((p) => ({ ...p, senha: 'Senha incorreta' }));
+          return;
+        }
+        // Login bem-sucedido — mantém dados existentes, só atualiza sessão
+        router.replace('/(tabs)');
+      } else {
+        // Primeiro login: cria usuário novo
+        const user = {
+          id: 'user_' + Date.now(),
+          name: email.split('@')[0],
+          email,
+          createdAt: new Date().toISOString(),
+        };
+        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+        await AsyncStorage.setItem('@traco:password', senha);
+        router.replace('/(tabs)');
+      }
     } catch {
       Alert.alert('Erro', 'Não foi possível realizar o login. Tente novamente.');
     } finally {

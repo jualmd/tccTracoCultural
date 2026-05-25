@@ -91,7 +91,7 @@ function Divider() {
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const { count: favCount, clearFavorites } = useFavorites();
+  const { count: favCount } = useFavorites();
   const router = useRouter();
 
   useFocusEffect(
@@ -187,12 +187,6 @@ export default function Profile() {
               label="Editar Informações"
               onPress={() => router.push('/(tabs)/edit-profile')}
             />
-            <Divider />
-            <SectionButton
-              icon="lock-closed-outline"
-              label="Alterar Senha"
-              onPress={() => {}}
-            />
           </GlassCard>
 
           {/* Configurações */}
@@ -204,18 +198,6 @@ export default function Profile() {
               icon="notifications-outline"
               label="Notificações"
               onPress={() => {}}
-            />
-            <Divider />
-            <SectionButton
-              icon="shield-outline"
-              label="Privacidade"
-              onPress={() => {}}
-            />
-            <Divider />
-            <SectionButton
-              icon="heart-dislike-outline"
-              label="Limpar Favoritos"
-              onPress={clearFavorites}
             />
           </GlassCard>
 

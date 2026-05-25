@@ -4,21 +4,24 @@ import type { Event } from '@/constants/events';
 
 type Props = {
   event: Event;
+  onPress: () => void;
   onFavorite: () => void;
   isFavorited: boolean;
 };
 
-export function EventCard({ event, onFavorite, isFavorited }: Props) {
+export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
   return (
-    <View
-      style={{
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
         backgroundColor: 'rgba(255,255,255,0.13)',
         borderRadius: 16,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.22)',
         marginBottom: 16,
         overflow: 'hidden',
-      }}
+        opacity: pressed ? 0.92 : 1,
+      })}
     >
       <Image
         source={{ uri: event.image }}
@@ -81,6 +84,6 @@ export function EventCard({ event, onFavorite, isFavorited }: Props) {
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

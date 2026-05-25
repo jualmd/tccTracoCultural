@@ -4,12 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { EventCard } from '@/components/event-card';
-import { EVENTS } from '@/constants/events';
+import { EventDetailModal } from '@/components/event-detail-modal';
+import { EVENTS, type Event } from '@/constants/events';
 import { Theme } from '@/constants/theme';
 import { useFavorites } from '@/lib/favorites-context';
 
 export default function Favorites() {
   const [search, setSearch] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { favorites, isFavorite, toggleFavorite } = useFavorites();
 
   const favoriteEvents = useMemo(() => {
@@ -109,12 +111,21 @@ export default function Favorites() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
+              onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
             />
           )}
         />
       </SafeAreaView>
+
+      <EventDetailModal
+        event={selectedEvent}
+        visible={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onFavorite={() => selectedEvent && toggleFavorite(selectedEvent.id)}
+        isFavorited={!!selectedEvent && isFavorite(selectedEvent.id)}
+      />
     </LinearGradient>
   );
 }
