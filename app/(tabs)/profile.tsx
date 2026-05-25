@@ -8,6 +8,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { DeleteAccountModal } from '@/components/delete-account-modal';
 import { Theme } from '@/constants/theme';
 import { USER_STORAGE_KEY, type User } from '@/constants/user-types';
+import { useFavorites } from '@/lib/favorites-context';
 
 type SectionButtonProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -90,6 +91,7 @@ function Divider() {
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const { count: favCount, clearFavorites } = useFavorites();
   const router = useRouter();
 
   useFocusEffect(
@@ -155,6 +157,23 @@ export default function Profile() {
                   Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                 </Text>
               )}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginTop: 14,
+                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  borderRadius: 20,
+                  paddingHorizontal: 14,
+                  paddingVertical: 6,
+                }}
+              >
+                <Ionicons name="heart" size={14} color="#ff6b6b" />
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
+                  {favCount} {favCount === 1 ? 'favorito' : 'favoritos'}
+                </Text>
+              </View>
             </View>
           </GlassCard>
 
@@ -191,6 +210,12 @@ export default function Profile() {
               icon="shield-outline"
               label="Privacidade"
               onPress={() => {}}
+            />
+            <Divider />
+            <SectionButton
+              icon="heart-dislike-outline"
+              label="Limpar Favoritos"
+              onPress={clearFavorites}
             />
           </GlassCard>
 

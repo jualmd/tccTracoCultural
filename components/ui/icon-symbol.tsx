@@ -16,6 +16,8 @@ const MAPPING: Record<string, MaterialIconName> = {
   'person.fill': 'person',
   'pencil.fill': 'edit',
   'trash.fill': 'delete',
+  'heart.fill': 'favorite',
+  'heart': 'favorite-border',
 };
 
 export type IconSymbolName = keyof typeof MAPPING;

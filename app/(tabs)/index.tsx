@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -14,10 +14,11 @@ import { useRouter } from 'expo-router';
 import { EventCard } from '@/components/event-card';
 import { EVENTS } from '@/constants/events';
 import { Theme } from '@/constants/theme';
+import { useFavorites } from '@/lib/favorites-context';
 
 export default function Home() {
   const [search, setSearch] = useState('');
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
 
   const filtered = useMemo(
@@ -29,14 +30,6 @@ export default function Home() {
       ),
     [search]
   );
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }, []);
 
   async function handleLogout() {
     await AsyncStorage.removeItem('@traco:user');
@@ -120,7 +113,7 @@ export default function Home() {
             <EventCard
               event={item}
               onFavorite={() => toggleFavorite(item.id)}
-              isFavorited={favorites.has(item.id)}
+              isFavorited={isFavorite(item.id)}
             />
           )}
         />
