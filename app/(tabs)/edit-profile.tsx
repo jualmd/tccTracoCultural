@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/constants/theme';
 import { USER_STORAGE_KEY, type User } from '@/constants/user-types';
+import { SuccessModal } from '@/components/success-modal';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_KEY = '@traco:password';
@@ -106,7 +106,14 @@ export default function EditProfile() {
     name: '', email: '', currentPassword: '', newPassword: '', confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
+
+  const handleSuccessClose = useCallback(() => {
+    setShowSuccess(false);
+    router.back();
+  }, [router]);
 
   useEffect(() => {
     AsyncStorage.getItem(USER_STORAGE_KEY).then((raw) => {
@@ -156,30 +163,31 @@ export default function EditProfile() {
 
     setLoading(true);
     try {
-      // Busca o usuário atual e atualiza APENAS nome e email (preserva id, createdAt, etc.)
       const raw = await AsyncStorage.getItem(USER_STORAGE_KEY);
       const existing: User = raw ? JSON.parse(raw) : {};
       const updated: User = { ...existing, name: name.trim(), email };
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
 
-      // Salva nova senha se o usuário quis alterar
       const changingPassword = currentPassword || newPassword || confirmPassword;
       if (changingPassword && newPassword) {
         await AsyncStorage.setItem(PASSWORD_KEY, newPassword);
+        setSuccessMessage('Senha alterada com sucesso!');
+      } else {
+        setSuccessMessage('Informações atualizadas com sucesso!');
       }
 
-      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      setShowSuccess(true);
     } catch {
-      Alert.alert('Erro', 'Não foi possível salvar. Tente novamente.');
+      // Fallback: navega direto se o modal falhar
+      router.back();
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <LinearGradient
+    <>
+      <LinearGradient
       colors={Theme.gradient.primary}
       style={{ flex: 1 }}
       start={{ x: 0, y: 0 }}
@@ -338,5 +346,12 @@ export default function EditProfile() {
         </KeyboardAvoidingView>
       </SafeAreaView>
     </LinearGradient>
+
+      <SuccessModal
+        visible={showSuccess}
+        message={successMessage}
+        onClose={handleSuccessClose}
+      />
+    </>
   );
 }
