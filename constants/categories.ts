@@ -1,0 +1,17 @@
+export const CATEGORIAS = [
+  { id: 1, nome: 'Social' },
+  { id: 2, nome: 'Música' },
+  { id: 3, nome: 'Cultura & Arte' },
+  { id: 4, nome: 'Profissional' },
+  { id: 5, nome: 'Educação' },
+  { id: 6, nome: 'Tecnologia' },
+  { id: 7, nome: 'Bem-Estar' },
+  { id: 8, nome: 'Esporte' },
+  { id: 9, nome: 'Gastronomia' },
+  { id: 10, nome: 'Comércio' },
+  { id: 11, nome: 'Kids' },
+  { id: 12, nome: 'Religioso' },
+  { id: 13, nome: 'Comunidade' },
+  { id: 14, nome: 'Geek' },
+  { id: 15, nome: 'Viagem' },
+];

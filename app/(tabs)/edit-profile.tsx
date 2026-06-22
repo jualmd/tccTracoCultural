@@ -11,15 +11,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/constants/theme';
-import { USER_STORAGE_KEY, type User } from '@/constants/user-types';
 import { SuccessModal } from '@/components/success-modal';
+import { useAuth } from '@/contexts/auth-context';
+import { atualizarUsuario } from '@/services/user-service';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_KEY = '@traco:password';
 
 type Errors = {
   name: string;
@@ -66,7 +65,7 @@ function Field({
           autoCapitalize={autoCapitalize ?? 'none'}
           autoCorrect={false}
           style={{
-            backgroundColor: 'rgba(255,255,255,0.15)',
+            backgroundColor: Theme.glass.bg,
             borderRadius: 12,
             paddingHorizontal: 16,
             paddingVertical: 13,
@@ -74,7 +73,7 @@ function Field({
             color: '#fff',
             fontSize: 15,
             borderWidth: 1,
-            borderColor: error ? '#ff6b6b' : 'rgba(255,255,255,0.2)',
+            borderColor: error ? '#ff6b6b' : Theme.glass.border,
           }}
         />
         {secure && (
@@ -109,6 +108,7 @@ export default function EditProfile() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
+  const { user, setUser } = useAuth();
 
   const handleSuccessClose = useCallback(() => {
     setShowSuccess(false);
@@ -116,14 +116,10 @@ export default function EditProfile() {
   }, [router]);
 
   useEffect(() => {
-    AsyncStorage.getItem(USER_STORAGE_KEY).then((raw) => {
-      if (raw) {
-        const user: User = JSON.parse(raw);
-        setName(user.name);
-        setEmail(user.email);
-      }
-    });
-  }, []);
+    if (!user) return;
+    setName(user.nome);
+    setEmail(user.email);
+  }, [user]);
 
   function clearError(field: keyof Errors) {
     setErrors((p) => ({ ...p, [field]: '' }));
@@ -140,13 +136,7 @@ export default function EditProfile() {
 
     const changingPassword = currentPassword || newPassword || confirmPassword;
     if (changingPassword) {
-      const savedPassword = await AsyncStorage.getItem(PASSWORD_KEY);
-      if (!currentPassword) {
-        e.currentPassword = 'Informe a senha atual';
-      } else if (savedPassword && currentPassword !== savedPassword) {
-        // Só rejeita se houver senha salva E não bater
-        e.currentPassword = 'Senha atual incorreta';
-      }
+      if (!currentPassword) e.currentPassword = 'Informe a senha atual';
       if (!newPassword) e.newPassword = 'Informe a nova senha';
       else if (newPassword.length < 6) e.newPassword = 'Mínimo 6 caracteres';
       if (!confirmPassword) e.confirmPassword = 'Confirme a nova senha';
@@ -163,22 +153,22 @@ export default function EditProfile() {
 
     setLoading(true);
     try {
-      const raw = await AsyncStorage.getItem(USER_STORAGE_KEY);
-      const existing: User = raw ? JSON.parse(raw) : {};
-      const updated: User = { ...existing, name: name.trim(), email };
-      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
+      if (!user?.id) throw new Error('Usuário não encontrado');
+      const payload: any = { nome: name.trim(), email };
 
       const changingPassword = currentPassword || newPassword || confirmPassword;
       if (changingPassword && newPassword) {
-        await AsyncStorage.setItem(PASSWORD_KEY, newPassword);
+        payload.senhaAtual = currentPassword;
+        payload.senha = newPassword;
         setSuccessMessage('Senha alterada com sucesso!');
       } else {
         setSuccessMessage('Informações atualizadas com sucesso!');
       }
 
+      const updated = await atualizarUsuario(user.id, payload);
+      setUser(updated);
       setShowSuccess(true);
     } catch {
-      // Fallback: navega direto se o modal falhar
       router.back();
     } finally {
       setLoading(false);
@@ -188,164 +178,172 @@ export default function EditProfile() {
   return (
     <>
       <LinearGradient
-      colors={Theme.gradient.primary}
-      style={{ flex: 1 }}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.3, y: 1 }}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-            paddingVertical: 16,
-            gap: 12,
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={8}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        colors={Theme.gradient.primary}
+        style={{ flex: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 20,
+              paddingVertical: 16,
+              gap: 12,
+            }}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </Pressable>
-          <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>Editar Perfil</Text>
-        </View>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.6 : 1,
+                backgroundColor: Theme.glass.bg,
+                borderRadius: 16,
+                padding: 7,
+                borderWidth: 1,
+                borderColor: Theme.glass.border,
+              })}
+            >
+              <Ionicons name="arrow-back" size={20} color="#fff" />
+            </Pressable>
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>Editar Perfil</Text>
+          </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
           >
-            {/* Informações */}
-            <View
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                borderRadius: 20,
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.2)',
-                padding: 20,
-                marginBottom: 16,
-              }}
+            <ScrollView
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 16 }}>
-                Informações Pessoais
-              </Text>
-              <Field
-                label="Nome completo"
-                value={name}
-                onChangeText={(v) => { setName(v); clearError('name'); }}
-                error={errors.name}
-                placeholder="Seu nome"
-                autoCapitalize="words"
-                keyboardType="default"
-              />
-              <View style={{ marginTop: 12 }}>
-                <Field
-                  label="Email"
-                  value={email}
-                  onChangeText={(v) => { setEmail(v); clearError('email'); }}
-                  error={errors.email}
-                  placeholder="seu@email.com"
-                  keyboardType="email-address"
-                />
-              </View>
-            </View>
-
-            {/* Alterar senha */}
-            <View
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                borderRadius: 20,
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.2)',
-                padding: 20,
-                marginBottom: 24,
-              }}
-            >
-              <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 }}>
-                Alterar Senha
-              </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 16 }}>
-                Deixe em branco para manter a senha atual
-              </Text>
-              <Field
-                label="Senha atual"
-                value={currentPassword}
-                onChangeText={(v) => { setCurrentPassword(v); clearError('currentPassword'); }}
-                error={errors.currentPassword}
-                placeholder="••••••••"
-                secure
-              />
-              <View style={{ marginTop: 12 }}>
-                <Field
-                  label="Nova senha"
-                  value={newPassword}
-                  onChangeText={(v) => { setNewPassword(v); clearError('newPassword'); }}
-                  error={errors.newPassword}
-                  placeholder="Mínimo 6 caracteres"
-                  secure
-                />
-              </View>
-              <View style={{ marginTop: 12 }}>
-                <Field
-                  label="Confirmar nova senha"
-                  value={confirmPassword}
-                  onChangeText={(v) => { setConfirmPassword(v); clearError('confirmPassword'); }}
-                  error={errors.confirmPassword}
-                  placeholder="Repita a nova senha"
-                  secure
-                />
-              </View>
-            </View>
-
-            {/* Botões */}
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Pressable
-                onPress={() => router.back()}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  borderRadius: 12,
-                  paddingVertical: 14,
-                  alignItems: 'center',
+              {/* Informações */}
+              <View
+                style={{
+                  backgroundColor: Theme.glass.bg,
+                  borderRadius: Theme.radius.md,
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.35)',
-                  backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'transparent',
-                })}
+                  borderColor: Theme.glass.border,
+                  padding: 20,
+                  marginBottom: 16,
+                }}
               >
-                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Cancelar</Text>
-              </Pressable>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 16 }}>
+                  Informações Pessoais
+                </Text>
+                <Field
+                  label="Nome completo"
+                  value={name}
+                  onChangeText={(v) => { setName(v); clearError('name'); }}
+                  error={errors.name}
+                  placeholder="Seu nome"
+                  autoCapitalize="words"
+                  keyboardType="default"
+                />
+                <View style={{ marginTop: 12 }}>
+                  <Field
+                    label="Email"
+                    value={email}
+                    onChangeText={(v) => { setEmail(v); clearError('email'); }}
+                    error={errors.email}
+                    placeholder="seu@email.com"
+                    keyboardType="email-address"
+                  />
+                </View>
+              </View>
 
-              <Pressable
-                onPress={handleSave}
-                disabled={loading}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  borderRadius: 12,
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  backgroundColor: pressed ? 'rgba(255,255,255,0.85)' : '#fff',
-                })}
+              {/* Alterar senha */}
+              <View
+                style={{
+                  backgroundColor: Theme.glass.bg,
+                  borderRadius: Theme.radius.md,
+                  borderWidth: 1,
+                  borderColor: Theme.glass.border,
+                  padding: 20,
+                  marginBottom: 24,
+                }}
               >
-                {loading ? (
-                  <ActivityIndicator color={Theme.colors.secondary} />
-                ) : (
-                  <Text style={{ color: Theme.colors.secondary, fontWeight: '700', fontSize: 15 }}>
-                    Salvar Alterações
-                  </Text>
-                )}
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 }}>
+                  Alterar Senha
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 16 }}>
+                  Deixe em branco para manter a senha atual
+                </Text>
+                <Field
+                  label="Senha atual"
+                  value={currentPassword}
+                  onChangeText={(v) => { setCurrentPassword(v); clearError('currentPassword'); }}
+                  error={errors.currentPassword}
+                  placeholder="••••••••"
+                  secure
+                />
+                <View style={{ marginTop: 12 }}>
+                  <Field
+                    label="Nova senha"
+                    value={newPassword}
+                    onChangeText={(v) => { setNewPassword(v); clearError('newPassword'); }}
+                    error={errors.newPassword}
+                    placeholder="Mínimo 6 caracteres"
+                    secure
+                  />
+                </View>
+                <View style={{ marginTop: 12 }}>
+                  <Field
+                    label="Confirmar nova senha"
+                    value={confirmPassword}
+                    onChangeText={(v) => { setConfirmPassword(v); clearError('confirmPassword'); }}
+                    error={errors.confirmPassword}
+                    placeholder="Repita a nova senha"
+                    secure
+                  />
+                </View>
+              </View>
+
+              {/* Botões */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Pressable
+                  onPress={() => router.back()}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    borderRadius: Theme.radius.pill,
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.35)',
+                    backgroundColor: pressed ? Theme.glass.bg : 'transparent',
+                  })}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Cancelar</Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={handleSave}
+                  disabled={loading}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    borderRadius: Theme.radius.pill,
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
+                    ...Theme.shadow.accent,
+                  })}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={Theme.colors.primaryDark} />
+                  ) : (
+                    <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 15 }}>
+                      Salvar Alterações
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
 
       <SuccessModal
         visible={showSuccess}

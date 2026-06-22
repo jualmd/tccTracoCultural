@@ -7,7 +7,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Theme.colors.primary,
+        tabBarActiveTintColor: Theme.colors.accent,
         tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
         tabBarStyle: {
           backgroundColor: Theme.colors.secondary,
@@ -30,6 +30,10 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="login"
+        options={{ href: null, tabBarStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="cadastrar"
         options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
       <Tabs.Screen
@@ -59,8 +63,10 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="event-detail" options={{ href: null }} />
-      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen
+        name="configuracoes"
+        options={{ href: null, tabBarStyle: { display: 'none' } }}
+      />
       <Tabs.Screen
         name="edit-profile"
         options={{ href: null, tabBarStyle: { display: 'none' } }}

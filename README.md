@@ -16,6 +16,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
+## API
+
+The mobile app uses `EXPO_PUBLIC_API_URL` to reach the REST API.
+
+```bash
+EXPO_PUBLIC_API_URL=http://10.0.2.2:8080/api/v1
+```
+
+Use `http://10.0.2.2:8080/api/v1` for Android Emulator and `http://localhost:8080/api/v1` for iOS Simulator.
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)

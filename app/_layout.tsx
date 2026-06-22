@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { FavoritesProvider } from '@/lib/favorites-context';
+import { AuthProvider } from '@/contexts/auth-context';
+import { FavoritesProvider } from '@/contexts/favorites-context';
 import '../global.css';
 
 export const unstable_settings = {
@@ -9,11 +10,13 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   return (
-    <FavoritesProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-      </Stack>
-      <StatusBar style="light" />
-    </FavoritesProvider>
+    <AuthProvider>
+      <FavoritesProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+        <StatusBar style="light" />
+      </FavoritesProvider>
+    </AuthProvider>
   );
 }

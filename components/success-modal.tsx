@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Modal, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Theme } from '@/constants/theme';
 
 type Props = {
   visible: boolean;
@@ -21,7 +22,7 @@ export function SuccessModal({ visible, message, onClose, duration = 2500 }: Pro
       <View
         style={{
           flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.55)',
+          backgroundColor: 'rgba(15,6,5,0.65)',
           justifyContent: 'center',
           alignItems: 'center',
           paddingHorizontal: 40,
@@ -29,27 +30,30 @@ export function SuccessModal({ visible, message, onClose, duration = 2500 }: Pro
       >
         <View
           style={{
-            backgroundColor: '#3C2321',
-            borderRadius: 20,
+            backgroundColor: Theme.colors.primaryDark,
+            borderRadius: Theme.radius.lg,
             padding: 32,
             alignItems: 'center',
             width: '100%',
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.15)',
+            borderColor: Theme.glass.border,
+            ...Theme.shadow.card,
           }}
         >
           <View
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              backgroundColor: 'rgba(34,197,94,0.15)',
+              width: 68,
+              height: 68,
+              borderRadius: 34,
+              backgroundColor: 'rgba(212,163,115,0.18)',
+              borderWidth: 1,
+              borderColor: 'rgba(212,163,115,0.35)',
               justifyContent: 'center',
               alignItems: 'center',
-              marginBottom: 16,
+              marginBottom: 18,
             }}
           >
-            <Ionicons name="checkmark-circle" size={40} color="#22C55E" />
+            <Ionicons name="checkmark-circle" size={42} color={Theme.colors.accent} />
           </View>
 
           <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 8 }}>

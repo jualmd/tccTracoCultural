@@ -2,13 +2,13 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { DeleteAccountModal } from '@/components/delete-account-modal';
 import { Theme } from '@/constants/theme';
-import { USER_STORAGE_KEY, type User } from '@/constants/user-types';
-import { useFavorites } from '@/lib/favorites-context';
+import { useAuth } from '@/contexts/auth-context';
+import { useFavorites } from '@/contexts/favorites-context';
+import { buscarUsuario } from '@/services/user-service';
 
 type SectionButtonProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -34,20 +34,20 @@ function SectionButton({ icon, label, onPress, danger = false }: SectionButtonPr
           width: 36,
           height: 36,
           borderRadius: 10,
-          backgroundColor: danger ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.15)',
+          backgroundColor: danger ? 'rgba(239,68,68,0.18)' : Theme.glass.bgMd,
           justifyContent: 'center',
           alignItems: 'center',
           marginRight: 14,
         }}
       >
-        <Ionicons name={icon} size={18} color={danger ? '#EF4444' : '#fff'} />
+        <Ionicons name={icon} size={18} color={danger ? Theme.colors.danger : Theme.colors.accent} />
       </View>
       <Text
         style={{
           flex: 1,
           fontSize: 15,
           fontWeight: '500',
-          color: danger ? '#EF4444' : '#fff',
+          color: danger ? Theme.colors.danger : '#fff',
         }}
       >
         {label}
@@ -63,10 +63,10 @@ function GlassCard({ children }: { children: React.ReactNode }) {
   return (
     <View
       style={{
-        backgroundColor: 'rgba(255,255,255,0.12)',
-        borderRadius: 16,
+        backgroundColor: Theme.glass.bg,
+        borderRadius: Theme.radius.md,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
+        borderColor: Theme.glass.border,
         overflow: 'hidden',
         marginBottom: 16,
       }}
@@ -76,50 +76,50 @@ function GlassCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Divider() {
+function SectionLabel({ children }: { children: string }) {
   return (
-    <View
+    <Text
       style={{
-        height: 1,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        marginHorizontal: 16,
+        color: 'rgba(255,255,255,0.55)',
+        fontSize: 11.5,
+        fontWeight: '700',
+        letterSpacing: 1,
+        marginBottom: 8,
+        marginLeft: 4,
+        textTransform: 'uppercase',
       }}
-    />
+    >
+      {children}
+    </Text>
   );
 }
 
 export default function Profile() {
-  const [user, setUser] = useState<User | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const { count: favCount } = useFavorites();
+  const { user, setUser, logout } = useAuth();
   const router = useRouter();
 
   useFocusEffect(
     useCallback(() => {
-      AsyncStorage.getItem(USER_STORAGE_KEY).then((raw) => {
-        if (raw) setUser(JSON.parse(raw));
-      });
-    }, [])
+      if (!user?.id) return;
+      buscarUsuario(user.id).then(setUser).catch(() => {});
+    }, [setUser, user?.id])
   );
 
-  async function handleLogout() {
-    await AsyncStorage.removeItem(USER_STORAGE_KEY);
-    router.replace('/(tabs)/login');
-  }
-
-  const initial = user?.name?.charAt(0).toUpperCase() ?? '?';
+  const initial = user?.nome?.charAt(0).toUpperCase() ?? '?';
 
   return (
     <LinearGradient
       colors={Theme.gradient.primary}
       style={{ flex: 1 }}
       start={{ x: 0, y: 0 }}
-      end={{ x: 0.3, y: 1 }}
+      end={{ x: 1, y: 1 }}
     >
       <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ paddingHorizontal: 20, paddingVertical: 16 }}>
-          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: 0.5 }}>
+          <Text style={{ color: '#fff', fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
             Meu Perfil
           </Text>
         </View>
@@ -130,30 +130,31 @@ export default function Profile() {
         >
           {/* Avatar + info */}
           <GlassCard>
-            <View style={{ alignItems: 'center', paddingVertical: 28, paddingHorizontal: 16 }}>
+            <View style={{ alignItems: 'center', paddingVertical: 30, paddingHorizontal: 16 }}>
               <View
                 style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
-                  backgroundColor: 'rgba(255,255,255,0.25)',
-                  borderWidth: 2,
-                  borderColor: 'rgba(255,255,255,0.4)',
+                  width: 84,
+                  height: 84,
+                  borderRadius: 42,
+                  backgroundColor: Theme.colors.accent,
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginBottom: 14,
+                  marginBottom: 16,
+                  ...Theme.shadow.accent,
                 }}
               >
-                <Text style={{ fontSize: 32, fontWeight: '800', color: '#fff' }}>{initial}</Text>
+                <Text style={{ fontSize: 32, fontWeight: '800', color: Theme.colors.primaryDark }}>
+                  {initial}
+                </Text>
               </View>
               <Text style={{ fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 4 }}>
-                {user?.name ?? '—'}
+                {user?.nome ?? '—'}
               </Text>
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
                 {user?.email ?? '—'}
               </Text>
               {user?.createdAt && (
-                <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>
+                <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.42)', marginTop: 6 }}>
                   Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                 </Text>
               )}
@@ -162,9 +163,11 @@ export default function Profile() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 6,
-                  marginTop: 14,
-                  backgroundColor: 'rgba(255,255,255,0.12)',
-                  borderRadius: 20,
+                  marginTop: 16,
+                  backgroundColor: Theme.glass.bgMd,
+                  borderWidth: 1,
+                  borderColor: Theme.glass.border,
+                  borderRadius: Theme.radius.pill,
                   paddingHorizontal: 14,
                   paddingVertical: 6,
                 }}
@@ -178,9 +181,7 @@ export default function Profile() {
           </GlassCard>
 
           {/* Editar Perfil */}
-          <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '600', letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>
-            EDITAR PERFIL
-          </Text>
+          <SectionLabel>Editar Perfil</SectionLabel>
           <GlassCard>
             <SectionButton
               icon="person-outline"
@@ -190,21 +191,17 @@ export default function Profile() {
           </GlassCard>
 
           {/* Configurações */}
-          <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '600', letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>
-            CONFIGURAÇÕES
-          </Text>
+          <SectionLabel>Configurações</SectionLabel>
           <GlassCard>
             <SectionButton
               icon="notifications-outline"
-              label="Notificações"
-              onPress={() => {}}
+              label="Configurações"
+              onPress={() => router.push('/(tabs)/configuracoes' as never)}
             />
           </GlassCard>
 
           {/* Perigo */}
-          <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '600', letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>
-            ZONA DE PERIGO
-          </Text>
+          <SectionLabel>Zona de Perigo</SectionLabel>
           <GlassCard>
             <SectionButton
               icon="trash-outline"
@@ -216,10 +213,10 @@ export default function Profile() {
 
           {/* Logout */}
           <Pressable
-            onPress={handleLogout}
+            onPress={logout}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? '#dc2626' : '#EF4444',
-              borderRadius: 14,
+              backgroundColor: pressed ? Theme.colors.dangerDark : Theme.colors.danger,
+              borderRadius: Theme.radius.pill,
               paddingVertical: 15,
               alignItems: 'center',
               flexDirection: 'row',

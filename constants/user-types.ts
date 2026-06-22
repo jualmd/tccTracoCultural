@@ -1,8 +1,2 @@
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-}
-
-export const USER_STORAGE_KEY = '@traco:user';
+export { USER_STORAGE_KEY } from './types';
+export type { Usuario as User } from '@/types/domain';
