@@ -1,4 +1,14 @@
-import { ActivityIndicator, Image, Linking, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,33 +27,45 @@ type Props = {
   isFavorited: boolean;
 };
 
-function formatEventDate(event: Evento) {
-  const start = new Date(event.dataInicio);
-  if (Number.isNaN(start.getTime())) return event.dataInicio;
-  const startText = start.toLocaleString('pt-BR', {
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
-
-  if (!event.dataFim) return startText;
-  const end = new Date(event.dataFim);
-  if (Number.isNaN(end.getTime())) return startText;
-  return `${startText} a ${end.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })}`;
 }
 
 function getImageSource(event: Evento) {
   if (!event.cardImage) return { uri: `https://picsum.photos/seed/evento-${event.id}/900/600` };
   if (event.cardImage.startsWith('http') || event.cardImage.startsWith('data:')) return { uri: event.cardImage };
   return { uri: `data:image/jpeg;base64,${event.cardImage}` };
+}
+
+function CommentAvatar({ name }: { name: string }) {
+  return (
+    <View
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: Theme.glass.bgMd,
+        borderWidth: 1,
+        borderColor: Theme.glass.border,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+        flexShrink: 0,
+      }}
+    >
+      <Text style={{ color: Theme.colors.accent, fontSize: 12, fontWeight: '700' }}>
+        {name.charAt(0).toUpperCase()}
+      </Text>
+    </View>
+  );
 }
 
 export function EventDetailModal({ event, visible, onClose, onFavorite, isFavorited }: Props) {
@@ -66,16 +88,10 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
         setDetail(evento);
         setComments(comentarios);
       })
-      .catch(() => {
-        if (active) setDetail(event);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      .catch(() => { if (active) setDetail(event); })
+      .finally(() => { if (active) setLoading(false); });
 
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [event, visible]);
 
   const selectedEvent = detail ?? event;
@@ -99,13 +115,12 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
     }
   }
 
-  async function handleDeleteComment(commentId: number) {
-    await excluirComentario(commentId);
-    setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+  async function handleDeleteComment(id: number) {
+    await excluirComentario(id);
+    setComments((prev) => prev.filter((c) => c.id !== id));
   }
 
-  if (!event) return null;
-  if (!selectedEvent) return null;
+  if (!event || !selectedEvent) return null;
 
   return (
     <Modal
@@ -122,31 +137,26 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
       >
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView showsVerticalScrollIndicator={false} bounces>
-            {/* Imagem full-width */}
-            <View style={{ position: 'relative' }}>
+
+            {/* ── Imagem hero com aspectRatio ── */}
+            <View style={{ aspectRatio: 16 / 9, position: 'relative' }}>
               <Image
                 source={getImageSource(selectedEvent)}
-                style={{ width: '100%', height: 280 }}
+                style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
 
-              {/* Overlay de gradiente na base da imagem, igual ao hero do web */}
+              {/* Gradiente base */}
               <LinearGradient
-                colors={['transparent', 'rgba(20,8,7,0.65)']}
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 110,
-                }}
+                colors={['transparent', 'rgba(20,8,7,0.7)']}
+                style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '60%' }}
               />
 
-              {/* Botões sobre a imagem */}
+              {/* Controles */}
               <View
                 style={{
                   position: 'absolute',
-                  top: 16,
+                  top: 14,
                   left: 16,
                   right: 16,
                   flexDirection: 'row',
@@ -156,53 +166,51 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                 <Pressable
                   onPress={onClose}
                   style={({ pressed }) => ({
-                    backgroundColor: pressed ? 'rgba(20,8,7,0.6)' : 'rgba(20,8,7,0.42)',
-                    borderRadius: 20,
-                    padding: 9,
+                    backgroundColor: pressed ? 'rgba(15,5,4,0.65)' : 'rgba(15,5,4,0.42)',
+                    borderRadius: 18,
+                    padding: 8,
                     borderWidth: 1,
                     borderColor: Theme.glass.border,
                   })}
                 >
-                  <Ionicons name="arrow-back" size={20} color="#fff" />
+                  <Ionicons name="arrow-back" size={18} color="#fff" />
                 </Pressable>
 
                 <Pressable
                   onPress={onFavorite}
                   style={({ pressed }) => ({
-                    backgroundColor: pressed ? 'rgba(20,8,7,0.6)' : 'rgba(20,8,7,0.42)',
-                    borderRadius: 20,
-                    padding: 9,
+                    backgroundColor: pressed ? 'rgba(15,5,4,0.65)' : 'rgba(15,5,4,0.42)',
+                    borderRadius: 18,
+                    padding: 8,
                     borderWidth: 1,
                     borderColor: Theme.glass.border,
+                    transform: [{ scale: pressed ? 0.88 : 1 }],
                   })}
                 >
                   <Ionicons
                     name={isFavorited ? 'heart' : 'heart-outline'}
-                    size={20}
+                    size={18}
                     color={isFavorited ? '#ff6b6b' : '#fff'}
                   />
                 </Pressable>
               </View>
-            </View>
 
-            {/* Conteúdo */}
-            <View style={{ padding: 22, marginTop: -28 }}>
-              {/* Badge categoria */}
+              {/* Badge categoria sobre a imagem */}
               <View
                 style={{
-                  alignSelf: 'flex-start',
+                  position: 'absolute',
+                  bottom: 14,
+                  left: 16,
                   backgroundColor: Theme.colors.accent,
                   borderRadius: Theme.radius.pill,
-                  paddingHorizontal: 13,
-                  paddingVertical: 5,
-                  marginBottom: 14,
-                  ...Theme.shadow.accent,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
                 }}
               >
                 <Text
                   style={{
                     color: Theme.colors.primaryDark,
-                    fontSize: 11.5,
+                    fontSize: 10,
                     fontWeight: '700',
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
@@ -211,63 +219,55 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                   {category}
                 </Text>
               </View>
+            </View>
+
+            {/* ── Conteúdo ── */}
+            <View style={{ padding: 20 }}>
 
               {/* Título */}
               <Text
-                style={{ color: '#fff', fontSize: 25, fontWeight: '800', marginBottom: 18, lineHeight: 31 }}
+                style={{
+                  color: '#fff',
+                  fontSize: 22,
+                  fontWeight: '800',
+                  lineHeight: 28,
+                  marginBottom: 16,
+                  letterSpacing: 0.1,
+                }}
               >
                 {selectedEvent.nome}
               </Text>
 
               {loading && (
-                <View style={{ alignItems: 'flex-start', marginBottom: 14 }}>
-                  <ActivityIndicator color={Theme.colors.accent} />
+                <View style={{ marginBottom: 12 }}>
+                  <ActivityIndicator color={Theme.colors.accent} size="small" />
                 </View>
               )}
 
-              {/* Data e local */}
+              {/* Info compacta: data + cidade */}
               <View
                 style={{
                   backgroundColor: Theme.glass.bg,
-                  borderRadius: Theme.radius.md,
+                  borderRadius: Theme.radius.sm,
                   borderWidth: 1,
                   borderColor: Theme.glass.border,
-                  padding: 16,
-                  gap: 12,
-                  marginBottom: 22,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  gap: 10,
+                  marginBottom: 20,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 9,
-                      backgroundColor: Theme.glass.bgMd,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Ionicons name="calendar-outline" size={15} color={Theme.colors.accent} />
-                  </View>
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '500', flex: 1 }}>
-                    {formatEventDate(selectedEvent)}
+                  <Ionicons name="calendar-outline" size={14} color={Theme.colors.accent} />
+                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, flex: 1 }}>
+                    {formatDate(selectedEvent.dataInicio)}
+                    {selectedEvent.dataFim ? `  →  ${formatDate(selectedEvent.dataFim)}` : ''}
                   </Text>
                 </View>
+                <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.07)' }} />
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 9,
-                      backgroundColor: Theme.glass.bgMd,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Ionicons name="location-outline" size={15} color={Theme.colors.accent} />
-                  </View>
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '500', flex: 1 }}>
+                  <Ionicons name="location-outline" size={14} color={Theme.colors.accent} />
+                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, flex: 1 }}>
                     {selectedEvent.cidade}
                   </Text>
                 </View>
@@ -276,37 +276,40 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
               {/* Descrição */}
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 15,
-                  lineHeight: 24,
-                  marginBottom: 32,
+                  color: 'rgba(255,255,255,0.75)',
+                  fontSize: 14,
+                  lineHeight: 22,
+                  marginBottom: 20,
                 }}
               >
                 {selectedEvent.descricao || 'Este evento ainda não possui descrição.'}
               </Text>
 
+              {/* Link externo */}
               {!!selectedEvent.linkExterno && (
                 <Pressable
                   onPress={() => Linking.openURL(selectedEvent.linkExterno!)}
                   style={({ pressed }) => ({
-                    backgroundColor: pressed ? Theme.glass.bgMd : Theme.glass.bg,
-                    borderWidth: 1,
-                    borderColor: Theme.glass.border,
-                    borderRadius: Theme.radius.pill,
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    marginBottom: 24,
+                    backgroundColor: pressed ? Theme.glass.bgMd : Theme.glass.bg,
+                    borderWidth: 1,
+                    borderColor: Theme.glass.border,
+                    borderRadius: Theme.radius.pill,
+                    paddingVertical: 11,
+                    marginBottom: 20,
                   })}
                 >
-                  <Ionicons name="open-outline" size={18} color={Theme.colors.accent} />
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>Abrir link do evento</Text>
+                  <Ionicons name="open-outline" size={15} color={Theme.colors.accent} />
+                  <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>
+                    Abrir link do evento
+                  </Text>
                 </Pressable>
               )}
 
+              {/* ── Comentários ── */}
               <View
                 style={{
                   backgroundColor: Theme.glass.bg,
@@ -314,98 +317,131 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                   borderWidth: 1,
                   borderColor: Theme.glass.border,
                   padding: 16,
-                  marginBottom: 24,
+                  marginBottom: 20,
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 17, fontWeight: '800', marginBottom: 12 }}>
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontSize: 15,
+                    fontWeight: '700',
+                    marginBottom: 14,
+                    letterSpacing: 0.1,
+                  }}
+                >
                   Comentários
+                  {sortedComments.length > 0 && (
+                    <Text style={{ color: Theme.colors.accent, fontWeight: '500' }}>
+                      {' '}({sortedComments.length})
+                    </Text>
+                  )}
                 </Text>
 
+                {/* Input */}
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
                   <TextInput
                     value={commentText}
                     onChangeText={setCommentText}
                     placeholder="Escreva um comentário..."
-                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    placeholderTextColor="rgba(255,255,255,0.35)"
                     style={{
                       flex: 1,
-                      minHeight: 42,
+                      minHeight: 40,
                       color: '#fff',
                       borderWidth: 1,
                       borderColor: Theme.glass.border,
-                      borderRadius: Theme.radius.md,
+                      borderRadius: Theme.radius.sm,
                       paddingHorizontal: 12,
+                      paddingVertical: 8,
                       backgroundColor: Theme.glass.bgMd,
+                      fontSize: 13,
                     }}
                   />
                   <Pressable
                     onPress={handleCreateComment}
                     disabled={!canSubmitComment}
                     style={({ pressed }) => ({
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      opacity: canSubmitComment ? (pressed ? 0.7 : 1) : 0.45,
                       backgroundColor: Theme.colors.accent,
+                      opacity: canSubmitComment ? (pressed ? 0.7 : 1) : 0.35,
+                      transform: [{ scale: pressed ? 0.9 : 1 }],
                     })}
                   >
                     {commentLoading ? (
-                      <ActivityIndicator color={Theme.colors.primaryDark} />
+                      <ActivityIndicator color={Theme.colors.primaryDark} size="small" />
                     ) : (
-                      <Ionicons name="send" size={18} color={Theme.colors.primaryDark} />
+                      <Ionicons name="send" size={15} color={Theme.colors.primaryDark} />
                     )}
                   </Pressable>
                 </View>
 
+                {/* Lista de comentários */}
                 {sortedComments.length === 0 ? (
-                  <Text style={{ color: 'rgba(255,255,255,0.58)', lineHeight: 20 }}>
-                    Nenhum comentário ainda.
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                    Nenhum comentário ainda. Seja o primeiro!
                   </Text>
                 ) : (
                   sortedComments.map((comment) => {
                     const canDelete = user?.id && comment.usuario?.id === user.id;
+                    const authorName = comment.usuario?.nome ?? 'Usuário';
                     return (
                       <View
                         key={comment.id}
                         style={{
-                          paddingVertical: 12,
+                          paddingTop: 12,
                           borderTopWidth: 1,
-                          borderTopColor: 'rgba(255,255,255,0.1)',
+                          borderTopColor: 'rgba(255,255,255,0.07)',
                         }}
                       >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                          <Text style={{ color: '#fff', fontWeight: '800', flex: 1 }}>
-                            {comment.usuario?.nome ?? 'Usuário'}
-                          </Text>
-                          {canDelete && (
-                            <Pressable onPress={() => handleDeleteComment(comment.id)} hitSlop={8}>
-                              <Ionicons name="trash-outline" size={16} color={Theme.colors.danger} />
-                            </Pressable>
-                          )}
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                          <CommentAvatar name={authorName} />
+                          <View style={{ flex: 1 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
+                              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5, flex: 1 }}>
+                                {authorName}
+                              </Text>
+                              {canDelete && (
+                                <Pressable
+                                  onPress={() => handleDeleteComment(comment.id)}
+                                  hitSlop={10}
+                                  style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                >
+                                  <Ionicons name="trash-outline" size={13} color={Theme.colors.danger} />
+                                </Pressable>
+                              )}
+                            </View>
+                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 19 }}>
+                              {comment.texto}
+                            </Text>
+                          </View>
                         </View>
-                        <Text style={{ color: 'rgba(255,255,255,0.76)', lineHeight: 20 }}>
-                          {comment.texto}
-                        </Text>
                       </View>
                     );
                   })
                 )}
               </View>
 
-              {/* Botão fechar */}
+              {/* Fechar */}
               <Pressable
                 onPress={onClose}
                 style={({ pressed }) => ({
                   backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
                   borderRadius: Theme.radius.pill,
-                  paddingVertical: 15,
+                  paddingVertical: 14,
                   alignItems: 'center',
-                  ...Theme.shadow.accent,
+                  shadowColor: Theme.colors.accent,
+                  shadowOpacity: 0.35,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 6,
+                  boxShadow: '0px 4px 10px rgba(212,163,115,0.35)',
                 })}
               >
-                <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 15 }}>
+                <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 14 }}>
                   Fechar
                 </Text>
               </Pressable>

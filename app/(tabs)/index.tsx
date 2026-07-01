@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   Text,
   TextInput,
@@ -17,6 +18,29 @@ import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
 import { useEvents } from '@/hooks/use-events';
 import type { Evento } from '@/types/domain';
+
+// Mapeamento de categoria → ícone Ionicons
+const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  'Social': 'people-outline',
+  'Música': 'musical-notes-outline',
+  'Cultura & Arte': 'color-palette-outline',
+  'Profissional': 'briefcase-outline',
+  'Educação': 'school-outline',
+  'Tecnologia': 'hardware-chip-outline',
+  'Bem-Estar': 'leaf-outline',
+  'Esporte': 'football-outline',
+  'Gastronomia': 'restaurant-outline',
+  'Comércio': 'storefront-outline',
+  'Kids': 'happy-outline',
+  'Religioso': 'star-outline',
+  'Comunidade': 'heart-circle-outline',
+  'Geek': 'game-controller-outline',
+  'Viagem': 'airplane-outline',
+};
+
+function getCategoryIcon(name: string): keyof typeof Ionicons.glyphMap {
+  return CATEGORY_ICONS[name] ?? 'grid-outline';
+}
 
 export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
@@ -42,128 +66,153 @@ export default function Home() {
       end={{ x: 1, y: 1 }}
     >
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
+
+        {/* ── Header ── */}
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
-            paddingTop: 14,
-            paddingBottom: 6,
+            paddingTop: 16,
+            paddingBottom: 8,
           }}
         >
           <View>
-            <View
+            <Text
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                alignSelf: 'flex-start',
-                backgroundColor: Theme.glass.bg,
-                borderWidth: 1,
-                borderColor: Theme.glass.border,
-                borderRadius: Theme.radius.pill,
-                paddingHorizontal: 10,
-                paddingVertical: 3,
+                color: 'rgba(255,255,255,0.5)',
+                fontSize: 11,
+                fontWeight: '600',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
                 marginBottom: 6,
               }}
             >
-              <Ionicons name="sparkles" size={10} color={Theme.colors.accent} />
-              <Text
-                style={{
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 10,
-                  fontWeight: '700',
-                  marginLeft: 4,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                Descubra
-              </Text>
-            </View>
-            <Text style={{ color: '#fff', fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
-              Traço Cultural
+              Descubra
             </Text>
+            <Image
+              source={require('@/assets/images/tracocult.logo.png')}
+              style={{ height: 32, width: 160 }}
+              resizeMode="contain"
+            />
           </View>
 
+          {/* Avatar */}
           <View
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 38,
+              height: 38,
+              borderRadius: 19,
               backgroundColor: Theme.colors.accent,
               justifyContent: 'center',
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: '800', color: Theme.colors.primaryDark }}>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: Theme.colors.primaryDark }}>
               {user?.nome?.charAt(0).toUpperCase() ?? '?'}
             </Text>
           </View>
         </View>
 
-        {/* Search */}
-        <View style={{ paddingHorizontal: 20, marginTop: 14, marginBottom: 14 }}>
+        {/* ── Busca ── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 8, marginBottom: 16 }}>
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: 'rgba(255,255,255,0.96)',
+              backgroundColor: 'rgba(255,255,255,0.97)',
               borderRadius: Theme.radius.pill,
-              paddingHorizontal: 16,
-              ...Theme.shadow.card,
+              paddingHorizontal: 14,
+              shadowColor: '#000',
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 3 },
+              elevation: 3,
+              boxShadow: '0px 3px 8px rgba(0,0,0,0.10)',
             }}
           >
-            <Ionicons name="search-outline" size={18} color={Theme.colors.primary} />
+            <Ionicons name="search-outline" size={17} color={Theme.colors.primary} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Buscar eventos..."
-              placeholderTextColor="#b0a09e"
+              placeholderTextColor="#b8a8a5"
               style={{
                 flex: 1,
                 color: Theme.colors.text,
-                paddingVertical: 13,
-                paddingLeft: 10,
-                fontSize: 14.5,
+                paddingVertical: 12,
+                paddingLeft: 9,
+                fontSize: 14,
               }}
             />
             {!!search && (
               <Pressable onPress={() => setSearch('')} hitSlop={8}>
-                <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
+                <Ionicons name="close-circle" size={17} color={Theme.colors.textMuted} />
               </Pressable>
             )}
           </View>
         </View>
 
+        {/* ── Categorias com ícone ── */}
         {categories.length > 0 && (
           <FlatList
             horizontal
             data={['Todos', ...categories]}
             keyExtractor={(item) => item}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 8, paddingBottom: 12 }}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              gap: 6,
+              paddingBottom: 16,
+            }}
             renderItem={({ item }) => {
               const active = item === 'Todos' ? !category : category === item;
+              const icon: keyof typeof Ionicons.glyphMap =
+                item === 'Todos' ? 'apps-outline' : getCategoryIcon(item);
+
               return (
                 <Pressable
                   onPress={() => setCategory(item === 'Todos' ? null : item)}
                   style={({ pressed }) => ({
-                    backgroundColor: active ? Theme.colors.accent : Theme.glass.bg,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 5,
+                    backgroundColor: active
+                      ? Theme.colors.accent
+                      : 'rgba(255,255,255,0.08)',
                     borderWidth: 1,
-                    borderColor: active ? Theme.colors.accent : Theme.glass.border,
+                    borderColor: active
+                      ? Theme.colors.accent
+                      : 'rgba(255,255,255,0.14)',
                     borderRadius: Theme.radius.pill,
-                    paddingHorizontal: 14,
-                    paddingVertical: 7,
-                    opacity: pressed ? 0.75 : 1,
+                    paddingHorizontal: 11,
+                    paddingVertical: 6,
+                    opacity: pressed ? 0.72 : 1,
+                    // sombra só no ativo
+                    ...(active
+                      ? {
+                          shadowColor: Theme.colors.accent,
+                          shadowOpacity: 0.35,
+                          shadowRadius: 8,
+                          shadowOffset: { width: 0, height: 3 },
+                          elevation: 4,
+                          boxShadow: '0px 3px 8px rgba(212,163,115,0.35)',
+                        }
+                      : {}),
                   })}
                 >
+                  <Ionicons
+                    name={icon}
+                    size={12}
+                    color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.55)'}
+                  />
                   <Text
                     style={{
-                      color: active ? Theme.colors.primaryDark : '#fff',
-                      fontSize: 12,
-                      fontWeight: '800',
+                      color: active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.55)',
+                      fontSize: 11.5,
+                      fontWeight: active ? '700' : '500',
+                      letterSpacing: 0.1,
                     }}
                   >
                     {item}
@@ -174,7 +223,7 @@ export default function Home() {
           />
         )}
 
-        {/* Events list */}
+        {/* ── Lista de eventos ── */}
         <FlatList
           data={filteredEvents}
           keyExtractor={(item) => String(item.id)}
@@ -183,27 +232,33 @@ export default function Home() {
           refreshing={loading}
           onRefresh={refresh}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', marginTop: 60 }}>
+            <View style={{ alignItems: 'center', marginTop: 64 }}>
               <View
                 style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: 44,
-                  backgroundColor: Theme.glass.bg,
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  backgroundColor: 'rgba(255,255,255,0.07)',
                   borderWidth: 1,
-                  borderColor: Theme.glass.border,
+                  borderColor: 'rgba(255,255,255,0.12)',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginBottom: 14,
+                  marginBottom: 16,
                 }}
               >
                 {loading ? (
                   <ActivityIndicator color={Theme.colors.accent} />
                 ) : (
-                  <Ionicons name="calendar-outline" size={36} color="rgba(255,255,255,0.45)" />
+                  <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.35)" />
                 )}
               </View>
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, fontWeight: '600' }}>
+              <Text
+                style={{
+                  color: 'rgba(255,255,255,0.5)',
+                  fontSize: 14,
+                  fontWeight: '500',
+                }}
+              >
                 {error || 'Nenhum evento encontrado'}
               </Text>
             </View>

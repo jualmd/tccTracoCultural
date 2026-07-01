@@ -10,16 +10,12 @@ type Props = {
   isFavorited: boolean;
 };
 
-function formatEventDate(event: Evento) {
+function formatMeta(event: Evento): string {
   const start = new Date(event.dataInicio);
-  if (Number.isNaN(start.getTime())) return event.dataInicio;
-
-  const startText = start.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-  if (!event.dataFim) return startText;
-
-  const end = new Date(event.dataFim);
-  if (Number.isNaN(end.getTime())) return startText;
-  return `${startText} a ${end.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+  const dateStr = Number.isNaN(start.getTime())
+    ? event.dataInicio
+    : start.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  return `${dateStr}  ·  ${event.cidade}`;
 }
 
 function getImageSource(event: Evento) {
@@ -37,43 +33,40 @@ export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
       style={({ pressed }) => ({
         backgroundColor: Theme.glass.bg,
         borderRadius: Theme.radius.md,
-        borderWidth: 1,
-        borderColor: Theme.glass.border,
-        marginBottom: 16,
+        marginBottom: 12,
         overflow: 'hidden',
-        opacity: pressed ? 0.92 : 1,
-        transform: [{ scale: pressed ? 0.98 : 1 }],
-        ...Theme.shadow.card,
+        opacity: pressed ? 0.88 : 1,
+        transform: [{ scale: pressed ? 0.975 : 1 }],
+        // sombra suave — menos pesada que antes
+        shadowColor: '#000',
+        shadowOpacity: 0.14,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+        boxShadow: '0px 4px 10px rgba(0,0,0,0.14)',
       })}
     >
-      <View>
+      {/* Imagem responsiva */}
+      <View style={{ aspectRatio: 16 / 9 }}>
         <Image
           source={getImageSource(event)}
-          style={{ width: '100%', height: 170 }}
+          style={{ width: '100%', height: '100%' }}
           resizeMode="cover"
         />
 
-        {/* Favorite button */}
-        <Pressable
-          onPress={onFavorite}
-          style={({ pressed }) => ({
+        {/* Gradiente sutil na base — coberto pelo conteúdo */}
+        <View
+          style={{
             position: 'absolute',
-            top: 10,
-            right: 10,
-            backgroundColor: pressed ? 'rgba(20,8,7,0.55)' : 'rgba(20,8,7,0.38)',
-            borderRadius: 20,
-            padding: 7,
-          })}
-          hitSlop={8}
-        >
-          <Ionicons
-            name={isFavorited ? 'heart' : 'heart-outline'}
-            size={20}
-            color={isFavorited ? '#ff6b6b' : '#fff'}
-          />
-        </Pressable>
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: '50%',
+            backgroundColor: 'transparent',
+          }}
+        />
 
-        {/* Category badge */}
+        {/* Badge categoria — menor e mais discreta */}
         <View
           style={{
             position: 'absolute',
@@ -81,45 +74,78 @@ export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
             left: 10,
             backgroundColor: Theme.colors.accent,
             borderRadius: Theme.radius.pill,
-            paddingHorizontal: 11,
-            paddingVertical: 4,
-            ...Theme.shadow.accent,
+            paddingHorizontal: 9,
+            paddingVertical: 3,
           }}
         >
           <Text
             style={{
               color: Theme.colors.primaryDark,
-              fontSize: 10.5,
+              fontSize: 9.5,
               fontWeight: '700',
-              letterSpacing: 0.4,
+              letterSpacing: 0.5,
               textTransform: 'uppercase',
             }}
           >
             {category}
           </Text>
         </View>
+
+        {/* Botão favorito */}
+        <Pressable
+          onPress={onFavorite}
+          hitSlop={10}
+          style={({ pressed }) => ({
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            backgroundColor: pressed
+              ? 'rgba(15,5,4,0.65)'
+              : isFavorited
+              ? 'rgba(15,5,4,0.55)'
+              : 'rgba(15,5,4,0.32)',
+            borderRadius: 18,
+            padding: 6,
+            transform: [{ scale: pressed ? 0.88 : 1 }],
+          })}
+        >
+          <Ionicons
+            name={isFavorited ? 'heart' : 'heart-outline'}
+            size={17}
+            color={isFavorited ? '#ff6b6b' : 'rgba(255,255,255,0.9)'}
+          />
+        </Pressable>
       </View>
 
-      {/* Content */}
-      <View style={{ padding: 15 }}>
+      {/* Conteúdo */}
+      <View style={{ paddingHorizontal: 14, paddingTop: 11, paddingBottom: 13 }}>
         <Text
-          style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 8, lineHeight: 21 }}
+          style={{
+            color: '#fff',
+            fontSize: 15,
+            fontWeight: '700',
+            lineHeight: 20,
+            marginBottom: 6,
+            letterSpacing: 0.1,
+          }}
           numberOfLines={2}
         >
           {event.nome}
         </Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-          <Ionicons name="calendar-outline" size={13} color={Theme.colors.accent} />
-          <Text style={{ color: 'rgba(255,255,255,0.78)', fontSize: 12.5, marginLeft: 6 }}>
-            {formatEventDate(event)}
-          </Text>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="location-outline" size={13} color={Theme.colors.accent} />
-          <Text style={{ color: 'rgba(255,255,255,0.78)', fontSize: 12.5, marginLeft: 6 }}>
-            {event.cidade}
+        {/* Metadados numa linha só */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <Ionicons name="time-outline" size={11} color={Theme.colors.accent} />
+          <Text
+            style={{
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: 11.5,
+              fontWeight: '500',
+              letterSpacing: 0.1,
+            }}
+            numberOfLines={1}
+          >
+            {formatMeta(event)}
           </Text>
         </View>
       </View>
