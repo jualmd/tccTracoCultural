@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -72,10 +73,12 @@ export default function Cadastrar() {
           style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}
         >
           <View style={{ alignItems: 'center', marginBottom: 36 }}>
-            <Text style={{ fontSize: 34, fontWeight: '800', color: '#fff' }}>
-              Traço Cultural
-            </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 6, fontSize: 14 }}>
+            <Image
+              source={require('@/assets/images/tracocult.logo.png')}
+              style={{ height: 48, width: 220, marginBottom: 12 }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
               Crie sua conta
             </Text>
           </View>

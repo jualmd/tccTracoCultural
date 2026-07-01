@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -70,37 +71,12 @@ export default function Login() {
         >
           {/* Logo */}
           <View style={{ alignItems: 'center', marginBottom: 40 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: Theme.glass.bg,
-                borderWidth: 1,
-                borderColor: Theme.glass.border,
-                borderRadius: Theme.radius.pill,
-                paddingHorizontal: 12,
-                paddingVertical: 4,
-                marginBottom: 14,
-              }}
-            >
-              <Ionicons name="sparkles" size={11} color={Theme.colors.accent} />
-              <Text
-                style={{
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 10.5,
-                  fontWeight: '700',
-                  marginLeft: 5,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                Bem-vindo de volta
-              </Text>
-            </View>
-            <Text style={{ fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>
-              Traço Cultural
-            </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 6, fontSize: 14 }}>
+            <Image
+              source={require('@/assets/images/tracocult.logo.png')}
+              style={{ height: 48, width: 220, marginBottom: 12 }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
               Descubra eventos culturais da sua cidade
             </Text>
           </View>
