@@ -1,17 +1,20 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { EventCard } from '@/components/event-card';
 import { EventDetailModal } from '@/components/event-detail-modal';
+import { EditEventModal } from '@/components/edit-event-modal';
 import { Theme } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
 import type { Evento } from '@/types/domain';
 
 export default function Favorites() {
   const [search, setSearch] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Evento | null>(null);
+  const { user } = useAuth();
   const { favorites, favoriteEvents, loadingFavorites, isFavorite, toggleFavorite, refreshFavorites } = useFavorites();
 
   const filteredFavoriteEvents = useMemo(() => {
@@ -27,12 +30,7 @@ export default function Favorites() {
   }, [favoriteEvents, search]);
 
   return (
-    <LinearGradient
-      colors={Theme.gradient.primary}
-      style={{ flex: 1 }}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
+    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
       <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6 }}>
@@ -41,9 +39,9 @@ export default function Favorites() {
               flexDirection: 'row',
               alignItems: 'center',
               alignSelf: 'flex-start',
-              backgroundColor: Theme.glass.bg,
+              backgroundColor: Theme.light.surfaceAlt,
               borderWidth: 1,
-              borderColor: Theme.glass.border,
+              borderColor: Theme.light.border,
               borderRadius: Theme.radius.pill,
               paddingHorizontal: 10,
               paddingVertical: 3,
@@ -53,7 +51,7 @@ export default function Favorites() {
             <Ionicons name="heart" size={10} color="#ff6b6b" />
             <Text
               style={{
-                color: 'rgba(255,255,255,0.85)',
+                color: Theme.light.textMuted,
                 fontSize: 10,
                 fontWeight: '700',
                 marginLeft: 4,
@@ -64,11 +62,11 @@ export default function Favorites() {
               Salvos
             </Text>
           </View>
-          <Text style={{ color: '#fff', fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
+          <Text style={{ color: Theme.light.text, fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
             Meus Favoritos
           </Text>
           {favorites.size > 0 && (
-            <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 3 }}>
+            <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginTop: 3 }}>
               {favorites.size} {favorites.size === 1 ? 'evento salvo' : 'eventos salvos'}
             </Text>
           )}
@@ -81,10 +79,12 @@ export default function Favorites() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.96)',
+                backgroundColor: Theme.light.surface,
+                borderWidth: 1,
+                borderColor: Theme.light.border,
                 borderRadius: Theme.radius.pill,
                 paddingHorizontal: 16,
-                ...Theme.shadow.card,
+                ...Theme.shadowLight.sm,
               }}
             >
               <Ionicons name="search-outline" size={18} color={Theme.colors.primary} />
@@ -95,7 +95,7 @@ export default function Favorites() {
                 placeholderTextColor="#b0a09e"
                 style={{
                   flex: 1,
-                  color: Theme.colors.text,
+                  color: Theme.light.text,
                   paddingVertical: 13,
                   paddingLeft: 10,
                   fontSize: 14.5,
@@ -103,7 +103,7 @@ export default function Favorites() {
               />
               {!!search && (
                 <Pressable onPress={() => setSearch('')} hitSlop={8}>
-                  <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
+                  <Ionicons name="close-circle" size={18} color={Theme.light.textMuted} />
                 </Pressable>
               )}
             </View>
@@ -125,23 +125,23 @@ export default function Favorites() {
                   width: 96,
                   height: 96,
                   borderRadius: 48,
-                  backgroundColor: Theme.glass.bg,
+                  backgroundColor: Theme.light.surface,
                   borderWidth: 1,
-                  borderColor: Theme.glass.border,
+                  borderColor: Theme.light.border,
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginBottom: 18,
                 }}
               >
                 {loadingFavorites ? (
-                  <ActivityIndicator color={Theme.colors.accent} />
+                  <ActivityIndicator color={Theme.colors.primary} />
                 ) : (
-                  <Ionicons name="heart-outline" size={42} color="rgba(255,255,255,0.45)" />
+                  <Ionicons name="heart-outline" size={42} color={Theme.light.textMuted} />
                 )}
               </View>
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.75)',
+                  color: Theme.light.text,
                   fontSize: 17,
                   fontWeight: '700',
                 }}
@@ -150,7 +150,7 @@ export default function Favorites() {
               </Text>
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.45)',
+                  color: Theme.light.textMuted,
                   fontSize: 13,
                   marginTop: 8,
                   textAlign: 'center',
@@ -168,6 +168,8 @@ export default function Favorites() {
               onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
+              isOwner={!!user?.id && item.usuario?.id === user.id}
+              onEdit={() => setEditingEvent(item)}
             />
           )}
         />
@@ -180,6 +182,13 @@ export default function Favorites() {
         onFavorite={() => selectedEvent && toggleFavorite(selectedEvent.id)}
         isFavorited={!!selectedEvent && isFavorite(selectedEvent.id)}
       />
-    </LinearGradient>
+
+      <EditEventModal
+        event={editingEvent}
+        visible={!!editingEvent}
+        onClose={() => setEditingEvent(null)}
+        onSaved={() => refreshFavorites()}
+      />
+    </View>
   );
 }

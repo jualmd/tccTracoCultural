@@ -9,10 +9,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { EventCard } from '@/components/event-card';
 import { EventDetailModal } from '@/components/event-detail-modal';
+import { EditEventModal } from '@/components/edit-event-modal';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
@@ -44,6 +44,7 @@ function getCategoryIcon(name: string): keyof typeof Ionicons.glyphMap {
 
 export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Evento | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useAuth();
   const {
@@ -59,14 +60,8 @@ export default function Home() {
   } = useEvents();
 
   return (
-    <LinearGradient
-      colors={Theme.gradient.primary}
-      style={{ flex: 1 }}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
+    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
       <SafeAreaView style={{ flex: 1 }}>
-
         {/* ── Header ── */}
         <View
           style={{
@@ -81,9 +76,9 @@ export default function Home() {
           <View>
             <Text
               style={{
-                color: 'rgba(255,255,255,0.5)',
+                color: Theme.colors.primary,
                 fontSize: 11,
-                fontWeight: '600',
+                fontWeight: '700',
                 letterSpacing: 1.2,
                 textTransform: 'uppercase',
                 marginBottom: 6,
@@ -121,15 +116,12 @@ export default function Home() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: 'rgba(255,255,255,0.97)',
+              backgroundColor: Theme.light.surface,
+              borderWidth: 1,
+              borderColor: Theme.light.border,
               borderRadius: Theme.radius.pill,
               paddingHorizontal: 14,
-              shadowColor: '#000',
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              shadowOffset: { width: 0, height: 3 },
-              elevation: 3,
-              boxShadow: '0px 3px 8px rgba(0,0,0,0.10)',
+              ...Theme.shadowLight.sm,
             }}
           >
             <Ionicons name="search-outline" size={17} color={Theme.colors.primary} />
@@ -137,10 +129,10 @@ export default function Home() {
               value={search}
               onChangeText={setSearch}
               placeholder="Buscar eventos..."
-              placeholderTextColor="#b8a8a5"
+              placeholderTextColor="#b0a09e"
               style={{
                 flex: 1,
-                color: Theme.colors.text,
+                color: Theme.light.text,
                 paddingVertical: 12,
                 paddingLeft: 9,
                 fontSize: 14,
@@ -148,7 +140,7 @@ export default function Home() {
             />
             {!!search && (
               <Pressable onPress={() => setSearch('')} hitSlop={8}>
-                <Ionicons name="close-circle" size={17} color={Theme.colors.textMuted} />
+                <Ionicons name="close-circle" size={17} color={Theme.light.textMuted} />
               </Pressable>
             )}
           </View>
@@ -178,18 +170,13 @@ export default function Home() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 5,
-                    backgroundColor: active
-                      ? Theme.colors.accent
-                      : 'rgba(255,255,255,0.08)',
+                    backgroundColor: active ? Theme.colors.accent : Theme.light.surface,
                     borderWidth: 1,
-                    borderColor: active
-                      ? Theme.colors.accent
-                      : 'rgba(255,255,255,0.14)',
+                    borderColor: active ? Theme.colors.accent : Theme.light.border,
                     borderRadius: Theme.radius.pill,
                     paddingHorizontal: 11,
                     paddingVertical: 6,
                     opacity: pressed ? 0.72 : 1,
-                    // sombra só no ativo
                     ...(active
                       ? {
                           shadowColor: Theme.colors.accent,
@@ -205,11 +192,11 @@ export default function Home() {
                   <Ionicons
                     name={icon}
                     size={12}
-                    color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.55)'}
+                    color={active ? Theme.colors.primaryDark : Theme.light.textMuted}
                   />
                   <Text
                     style={{
-                      color: active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.55)',
+                      color: active ? Theme.colors.primaryDark : Theme.light.textMuted,
                       fontSize: 11.5,
                       fontWeight: active ? '700' : '500',
                       letterSpacing: 0.1,
@@ -238,23 +225,23 @@ export default function Home() {
                   width: 80,
                   height: 80,
                   borderRadius: 40,
-                  backgroundColor: 'rgba(255,255,255,0.07)',
+                  backgroundColor: Theme.light.surface,
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.12)',
+                  borderColor: Theme.light.border,
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginBottom: 16,
                 }}
               >
                 {loading ? (
-                  <ActivityIndicator color={Theme.colors.accent} />
+                  <ActivityIndicator color={Theme.colors.primary} />
                 ) : (
-                  <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.35)" />
+                  <Ionicons name="calendar-outline" size={32} color={Theme.light.textMuted} />
                 )}
               </View>
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.5)',
+                  color: Theme.light.textMuted,
                   fontSize: 14,
                   fontWeight: '500',
                 }}
@@ -269,6 +256,8 @@ export default function Home() {
               onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
+              isOwner={!!user?.id && item.usuario?.id === user.id}
+              onEdit={() => setEditingEvent(item)}
             />
           )}
         />
@@ -281,6 +270,13 @@ export default function Home() {
         onFavorite={() => selectedEvent && toggleFavorite(selectedEvent.id)}
         isFavorited={!!selectedEvent && isFavorite(selectedEvent.id)}
       />
-    </LinearGradient>
+
+      <EditEventModal
+        event={editingEvent}
+        visible={!!editingEvent}
+        onClose={() => setEditingEvent(null)}
+        onSaved={() => refresh()}
+      />
+    </View>
   );
 }

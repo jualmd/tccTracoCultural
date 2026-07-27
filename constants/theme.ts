@@ -22,6 +22,40 @@ export const Theme = {
     placeholder: 'rgba(255,255,255,0.45)',
   },
 
+  // ── Tema claro (espelha estilos/temaClaro.css do front web) ──
+  // Usado nas telas com navegação por abas (Home, Mapa, Favoritos,
+  // Perfil, Configurações), que abandonaram o gradiente escuro/glass
+  // em favor de um visual minimalista claro.
+  light: {
+    bg: '#faf6f0',
+    surface: '#FFFFFF',
+    surfaceAlt: '#F3EAE0',
+    border: 'rgba(60, 35, 33, 0.10)',
+    borderStrong: 'rgba(60, 35, 33, 0.16)',
+    text: '#1E1412',
+    textMuted: '#7a6360',
+    star: '#D9A441',
+  },
+
+  shadowLight: {
+    sm: {
+      shadowColor: '#3C2321',
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+      boxShadow: '0px 2px 10px rgba(60,35,33,0.06)',
+    },
+    md: {
+      shadowColor: '#3C2321',
+      shadowOpacity: 0.1,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4,
+      boxShadow: '0px 10px 32px rgba(60,35,33,0.10)',
+    },
+  },
+
   gradient: {
     primary: ['#3C2321', '#8E5E56', '#A67B72'] as const,
   },

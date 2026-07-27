@@ -8,6 +8,8 @@ type Props = {
   onPress: () => void;
   onFavorite: () => void;
   isFavorited: boolean;
+  isOwner?: boolean;
+  onEdit?: () => void;
 };
 
 function formatMeta(event: Evento): string {
@@ -24,26 +26,22 @@ function getImageSource(event: Evento) {
   return { uri: `data:image/jpeg;base64,${event.cardImage}` };
 }
 
-export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
+export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = false, onEdit }: Props) {
   const category = event.categoria?.nome ?? 'Cultura';
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        backgroundColor: Theme.glass.bg,
+        backgroundColor: Theme.light.surface,
         borderRadius: Theme.radius.md,
-        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: Theme.light.border,
+        marginBottom: 14,
         overflow: 'hidden',
-        opacity: pressed ? 0.88 : 1,
-        transform: [{ scale: pressed ? 0.975 : 1 }],
-        // sombra suave — menos pesada que antes
-        shadowColor: '#000',
-        shadowOpacity: 0.14,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 3,
-        boxShadow: '0px 4px 10px rgba(0,0,0,0.14)',
+        opacity: pressed ? 0.92 : 1,
+        transform: [{ scale: pressed ? 0.98 : 1 }],
+        ...Theme.shadowLight.sm,
       })}
     >
       {/* Imagem responsiva */}
@@ -54,19 +52,7 @@ export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
           resizeMode="cover"
         />
 
-        {/* Gradiente sutil na base — coberto pelo conteúdo */}
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: '50%',
-            backgroundColor: 'transparent',
-          }}
-        />
-
-        {/* Badge categoria — menor e mais discreta */}
+        {/* Badge categoria */}
         <View
           style={{
             position: 'absolute',
@@ -91,37 +77,56 @@ export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
           </Text>
         </View>
 
-        {/* Botão favorito */}
-        <Pressable
-          onPress={onFavorite}
-          hitSlop={10}
-          style={({ pressed }) => ({
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            backgroundColor: pressed
-              ? 'rgba(15,5,4,0.65)'
-              : isFavorited
-              ? 'rgba(15,5,4,0.55)'
-              : 'rgba(15,5,4,0.32)',
-            borderRadius: 18,
-            padding: 6,
-            transform: [{ scale: pressed ? 0.88 : 1 }],
-          })}
-        >
-          <Ionicons
-            name={isFavorited ? 'heart' : 'heart-outline'}
-            size={17}
-            color={isFavorited ? '#ff6b6b' : 'rgba(255,255,255,0.9)'}
-          />
-        </Pressable>
+        {/* Ações no canto superior direito */}
+        <View style={{ position: 'absolute', top: 8, right: 8, flexDirection: 'row', gap: 6 }}>
+          {isOwner && onEdit && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                onEdit();
+              }}
+              hitSlop={10}
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? 'rgba(30,20,18,0.75)' : 'rgba(30,20,18,0.55)',
+                borderRadius: 18,
+                padding: 6,
+                transform: [{ scale: pressed ? 0.88 : 1 }],
+              })}
+            >
+              <Ionicons name="pencil" size={15} color="#fff" />
+            </Pressable>
+          )}
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onFavorite();
+            }}
+            hitSlop={10}
+            style={({ pressed }) => ({
+              backgroundColor: pressed
+                ? 'rgba(30,20,18,0.75)'
+                : isFavorited
+                ? 'rgba(30,20,18,0.6)'
+                : 'rgba(30,20,18,0.4)',
+              borderRadius: 18,
+              padding: 6,
+              transform: [{ scale: pressed ? 0.88 : 1 }],
+            })}
+          >
+            <Ionicons
+              name={isFavorited ? 'heart' : 'heart-outline'}
+              size={17}
+              color={isFavorited ? '#ff6b6b' : '#fff'}
+            />
+          </Pressable>
+        </View>
       </View>
 
       {/* Conteúdo */}
       <View style={{ paddingHorizontal: 14, paddingTop: 11, paddingBottom: 13 }}>
         <Text
           style={{
-            color: '#fff',
+            color: Theme.light.text,
             fontSize: 15,
             fontWeight: '700',
             lineHeight: 20,
@@ -133,12 +138,11 @@ export function EventCard({ event, onPress, onFavorite, isFavorited }: Props) {
           {event.nome}
         </Text>
 
-        {/* Metadados numa linha só */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          <Ionicons name="time-outline" size={11} color={Theme.colors.accent} />
+          <Ionicons name="time-outline" size={11} color={Theme.colors.primary} />
           <Text
             style={{
-              color: 'rgba(255,255,255,0.6)',
+              color: Theme.light.textMuted,
               fontSize: 11.5,
               fontWeight: '500',
               letterSpacing: 0.1,

@@ -39,7 +39,13 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Traço Cultural usa sua localização para centralizar o mapa de eventos perto de você."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
