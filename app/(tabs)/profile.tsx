@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { DeleteAccountModal } from '@/components/delete-account-modal';
@@ -36,26 +37,26 @@ function SectionButton({ icon, label, onPress, danger = false }: SectionButtonPr
           width: 36,
           height: 36,
           borderRadius: 10,
-          backgroundColor: danger ? 'rgba(239,68,68,0.12)' : Theme.light.surfaceAlt,
+          backgroundColor: danger ? 'rgba(239,68,68,0.16)' : Theme.glass.bgMd,
           justifyContent: 'center',
           alignItems: 'center',
           marginRight: 14,
         }}
       >
-        <Ionicons name={icon} size={18} color={danger ? Theme.colors.danger : Theme.colors.primary} />
+        <Ionicons name={icon} size={18} color={danger ? Theme.colors.danger : Theme.colors.accent} />
       </View>
       <Text
         style={{
           flex: 1,
           fontSize: 15,
           fontWeight: '500',
-          color: danger ? Theme.colors.danger : Theme.light.text,
+          color: danger ? '#e5847a' : '#fff',
         }}
       >
         {label}
       </Text>
       {!danger && (
-        <Ionicons name="chevron-forward" size={16} color={Theme.light.textMuted} />
+        <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.45)" />
       )}
     </Pressable>
   );
@@ -65,10 +66,10 @@ function Card({ children }: { children: React.ReactNode }) {
   return (
     <View
       style={{
-        backgroundColor: Theme.light.surface,
+        backgroundColor: Theme.glass.bg,
         borderRadius: Theme.radius.md,
         borderWidth: 1,
-        borderColor: Theme.light.border,
+        borderColor: Theme.glass.border,
         overflow: 'hidden',
         marginBottom: 16,
       }}
@@ -82,7 +83,7 @@ function SectionLabel({ children }: { children: string }) {
   return (
     <Text
       style={{
-        color: Theme.light.textMuted,
+        color: 'rgba(255,255,255,0.55)',
         fontSize: 11.5,
         fontWeight: '700',
         letterSpacing: 1,
@@ -115,19 +116,19 @@ function EventMiniCard({ evento, onEdit }: { evento: Evento; onEdit: () => void 
             width: 52,
             height: 52,
             borderRadius: Theme.radius.sm,
-            backgroundColor: Theme.light.surfaceAlt,
+            backgroundColor: Theme.glass.bgMd,
             justifyContent: 'center',
             alignItems: 'center',
           }}
         >
-          <Ionicons name="image-outline" size={20} color={Theme.light.textMuted} />
+          <Ionicons name="image-outline" size={20} color="rgba(255,255,255,0.5)" />
         </View>
       )}
       <View style={{ flex: 1 }}>
-        <Text style={{ color: Theme.light.text, fontWeight: '700', fontSize: 14.5 }} numberOfLines={1}>
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14.5 }} numberOfLines={1}>
           {evento.nome}
         </Text>
-        <Text style={{ color: Theme.light.textMuted, fontSize: 12.5, marginTop: 2 }} numberOfLines={1}>
+        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12.5, marginTop: 2 }} numberOfLines={1}>
           {new Date(evento.dataInicio).toLocaleDateString('pt-BR')} · {evento.cidade}
         </Text>
       </View>
@@ -138,13 +139,13 @@ function EventMiniCard({ evento, onEdit }: { evento: Evento; onEdit: () => void 
           width: 34,
           height: 34,
           borderRadius: 17,
-          backgroundColor: Theme.light.surfaceAlt,
+          backgroundColor: Theme.glass.bgMd,
           justifyContent: 'center',
           alignItems: 'center',
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="pencil" size={15} color={Theme.colors.primary} />
+        <Ionicons name="pencil" size={15} color={Theme.colors.accent} />
       </Pressable>
     </View>
   );
@@ -173,20 +174,39 @@ export default function Profile() {
   const initial = user?.nome?.charAt(0).toUpperCase() ?? '?';
 
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
+    <View style={{ flex: 1, backgroundColor: Theme.colors.primaryDark }}>
+      <LinearGradient
+        colors={Theme.gradient.primary}
+        start={{ x: 0.15, y: 0.05 }}
+        end={{ x: 0.85, y: 1 }}
+        style={{ position: 'absolute', inset: 0 } as any}
+      />
+
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={{ paddingHorizontal: 20, paddingVertical: 16 }}>
-          <Text style={{ color: Theme.light.text, fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
+        {/* Header — espelha .title-section */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 4 }}>
+          <Text
+            style={{
+              color: Theme.colors.accent,
+              fontSize: 10.5,
+              fontWeight: '700',
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              marginBottom: 4,
+            }}
+          >
+            Sua conta
+          </Text>
+          <Text style={{ color: '#fff', fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
             Meu Perfil
           </Text>
         </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
         >
-          {/* Avatar + info */}
+          {/* Avatar + info — espelha .profile-card / .profile-header / .profile-stats */}
           <Card>
             <View style={{ alignItems: 'center', paddingVertical: 30, paddingHorizontal: 16 }}>
               <View
@@ -198,46 +218,41 @@ export default function Profile() {
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginBottom: 16,
-                  ...Theme.shadowLight.md,
+                  ...Theme.shadow.accent,
                 }}
               >
                 <Text style={{ fontSize: 32, fontWeight: '800', color: Theme.colors.primaryDark }}>
                   {initial}
                 </Text>
               </View>
-              <Text style={{ fontSize: 20, fontWeight: '700', color: Theme.light.text, marginBottom: 4 }}>
+              <Text style={{ fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 4 }}>
                 {user?.nome ?? '—'}
               </Text>
-              <Text style={{ fontSize: 14, color: Theme.light.textMuted }}>
+              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
                 {user?.email ?? '—'}
               </Text>
               {user?.createdAt && (
-                <Text style={{ fontSize: 12, color: Theme.light.textMuted, marginTop: 6 }}>
+                <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
                   Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                 </Text>
               )}
 
-              {/* Estatísticas */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  gap: 10,
-                  marginTop: 18,
-                }}
-              >
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 6,
-                    backgroundColor: Theme.light.surfaceAlt,
+                    backgroundColor: 'rgba(212,163,115,0.15)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(212,163,115,0.25)',
                     borderRadius: Theme.radius.pill,
                     paddingHorizontal: 14,
                     paddingVertical: 6,
                   }}
                 >
-                  <Ionicons name="calendar-outline" size={14} color={Theme.colors.primary} />
-                  <Text style={{ color: Theme.light.text, fontSize: 13, fontWeight: '600' }}>
+                  <Ionicons name="calendar-outline" size={14} color={Theme.colors.accent} />
+                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
                     {myEvents.length} {myEvents.length === 1 ? 'evento' : 'eventos'}
                   </Text>
                 </View>
@@ -246,14 +261,16 @@ export default function Profile() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 6,
-                    backgroundColor: Theme.light.surfaceAlt,
+                    backgroundColor: 'rgba(212,163,115,0.15)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(212,163,115,0.25)',
                     borderRadius: Theme.radius.pill,
                     paddingHorizontal: 14,
                     paddingVertical: 6,
                   }}
                 >
                   <Ionicons name="heart" size={14} color="#ff6b6b" />
-                  <Text style={{ color: Theme.light.text, fontSize: 13, fontWeight: '600' }}>
+                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
                     {favCount} {favCount === 1 ? 'favorito' : 'favoritos'}
                   </Text>
                 </View>
@@ -261,7 +278,6 @@ export default function Profile() {
             </View>
           </Card>
 
-          {/* Meus Eventos */}
           <SectionLabel>Meus Eventos</SectionLabel>
           {myEvents.length > 0 ? (
             <Card>
@@ -269,7 +285,7 @@ export default function Profile() {
                 <View key={evento.id}>
                   <EventMiniCard evento={evento} onEdit={() => setEditingEvent(evento)} />
                   {index < myEvents.length - 1 && (
-                    <View style={{ height: 1, marginHorizontal: 12, backgroundColor: Theme.light.border }} />
+                    <View style={{ height: 1, marginHorizontal: 12, backgroundColor: Theme.glass.border }} />
                   )}
                 </View>
               ))}
@@ -277,15 +293,14 @@ export default function Profile() {
           ) : (
             <Card>
               <View style={{ alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20 }}>
-                <Ionicons name="calendar-outline" size={28} color={Theme.light.textMuted} />
-                <Text style={{ color: Theme.light.textMuted, fontSize: 13.5, marginTop: 10, textAlign: 'center' }}>
+                <Ionicons name="calendar-outline" size={28} color="rgba(255,255,255,0.4)" />
+                <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13.5, marginTop: 10, textAlign: 'center' }}>
                   Você ainda não criou nenhum evento.
                 </Text>
               </View>
             </Card>
           )}
 
-          {/* Editar Perfil */}
           <SectionLabel>Editar Perfil</SectionLabel>
           <Card>
             <SectionButton
@@ -295,7 +310,6 @@ export default function Profile() {
             />
           </Card>
 
-          {/* Configurações */}
           <SectionLabel>Configurações</SectionLabel>
           <Card>
             <SectionButton
@@ -305,7 +319,6 @@ export default function Profile() {
             />
           </Card>
 
-          {/* Perigo */}
           <SectionLabel>Zona de Perigo</SectionLabel>
           <Card>
             <SectionButton
@@ -316,7 +329,6 @@ export default function Profile() {
             />
           </Card>
 
-          {/* Logout */}
           <Pressable
             onPress={logout}
             style={({ pressed }) => ({

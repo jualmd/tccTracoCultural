@@ -72,4 +72,3 @@ export async function redefinirSenha(email: string, codigo: string, novaSenha: s
   const { data } = await apiClient.post('/auth/redefinir-senha', { email, codigo, novaSenha });
   return data as { message: string };
 }
-

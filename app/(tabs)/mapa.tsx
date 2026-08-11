@@ -11,10 +11,6 @@ import { useFavorites } from '@/contexts/favorites-context';
 import { listarEventos } from '@/services/event-service';
 import type { Evento } from '@/types/domain';
 
-// Página HTML autocontida com Leaflet via CDN. Geocodifica as cidades
-// dos eventos recebidos (mesma estratégia do MapaEventos.jsx do front
-// web: Nominatim + cache em memória + atraso entre chamadas) e desenha
-// os pinos. Comunicação com o React Native via postMessage.
 const MAP_HTML = `
 <!DOCTYPE html>
 <html>
@@ -138,46 +134,43 @@ const MAP_HTML = `
 </html>
 `;
 
-const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'Social': 'people-outline',
-  'Música': 'musical-notes-outline',
-  'Cultura & Arte': 'color-palette-outline',
-  'Profissional': 'briefcase-outline',
-  'Educação': 'school-outline',
-  'Tecnologia': 'hardware-chip-outline',
-  'Bem-Estar': 'leaf-outline',
-  'Esporte': 'football-outline',
-  'Gastronomia': 'restaurant-outline',
-  'Comércio': 'storefront-outline',
-  'Kids': 'happy-outline',
-  'Religioso': 'star-outline',
-  'Comunidade': 'heart-circle-outline',
-  'Geek': 'game-controller-outline',
-  'Viagem': 'airplane-outline',
-};
+const CATEGORIAS_PRINCIPAIS: { nome: string; icone: keyof typeof Ionicons.glyphMap; cor: string }[] = [
+  { nome: 'Todos', icone: 'location', cor: Theme.colors.primaryDark },
+  { nome: 'Música', icone: 'musical-notes', cor: '#e85d75' },
+  { nome: 'Cultura & Arte', icone: 'color-palette', cor: '#8a5cf5' },
+  { nome: 'Teatro', icone: 'happy', cor: '#e8a13d' },
+  { nome: 'Gastronomia', icone: 'restaurant', cor: '#4a9d6b' },
+];
+
+const CATEGORIAS_EXTRA: { nome: string; icone: keyof typeof Ionicons.glyphMap; cor: string }[] = [
+  { nome: 'Esporte', icone: 'trophy', cor: '#2f8f7a' },
+  { nome: 'Tecnologia', icone: 'hardware-chip', cor: '#3d7ae8' },
+  { nome: 'Kids', icone: 'balloon', cor: '#e86ba0' },
+  { nome: 'Comunidade', icone: 'people', cor: '#b8864e' },
+];
 
 export default function Mapa() {
   const webviewRef = useRef<WebView>(null);
   const [ready, setReady] = useState(false);
   const [events, setEvents] = useState<Evento[]>([]);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
+  const [category, setCategory] = useState('Todos');
+  const [mostrarExtras, setMostrarExtras] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   const [markerCount, setMarkerCount] = useState(0);
   const [locationError, setLocationError] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  const categories = useMemo(
-    () => [...new Set(events.map((e) => e.categoria?.nome).filter(Boolean) as string[])],
-    [events]
-  );
+  const categoriasVisiveis = mostrarExtras
+    ? [...CATEGORIAS_PRINCIPAIS, ...CATEGORIAS_EXTRA]
+    : CATEGORIAS_PRINCIPAIS;
 
   const filteredEvents = useMemo(() => {
     const termo = search.trim().toLowerCase();
     return events.filter((e) => {
       const matchBusca = !termo || e.nome.toLowerCase().includes(termo) || e.cidade.toLowerCase().includes(termo);
-      const matchCategoria = !category || e.categoria?.nome === category;
+      const matchCategoria = category === 'Todos' || e.categoria?.nome === category;
       return matchBusca && matchCategoria;
     });
   }, [events, search, category]);
@@ -237,112 +230,147 @@ export default function Mapa() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        {/* Header */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 10 }}>
-          <Text style={{ color: Theme.light.text, fontSize: 23, fontWeight: '800', letterSpacing: 0.3 }}>
-            Mapa de Eventos
-          </Text>
-          <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginTop: 3 }}>
-            {mapLoading ? 'Localizando eventos no mapa...' : `${markerCount} evento(s) localizado(s)`}
-          </Text>
-        </View>
+    <View style={{ flex: 1, backgroundColor: '#faf6f0' }}>
+      <WebView
+        ref={webviewRef}
+        source={{ html: MAP_HTML }}
+        onMessage={onMessage}
+        javaScriptEnabled
+        geolocationEnabled
+        originWhitelist={['*']}
+        startInLoadingState
+        style={{ flex: 1 }}
+        renderLoading={() => (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#faf6f0' }}>
+            <ActivityIndicator color={Theme.colors.primary} />
+          </View>
+        )}
+      />
 
-        {/* Busca */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0 }} pointerEvents="box-none">
+        <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 10 }} pointerEvents="box-none">
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: Theme.light.surface,
-              borderWidth: 1,
-              borderColor: Theme.light.border,
+              backgroundColor: '#fff',
               borderRadius: Theme.radius.pill,
               paddingHorizontal: 14,
-              ...Theme.shadowLight.sm,
+              ...Theme.shadowLight.md,
             }}
           >
-            <Ionicons name="search-outline" size={17} color={Theme.colors.primary} />
+            <Ionicons name="search-outline" size={17} color={Theme.colors.textMuted} />
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Buscar por evento ou cidade..."
-              placeholderTextColor="#b0a09e"
-              style={{ flex: 1, color: Theme.light.text, paddingVertical: 11, paddingLeft: 9, fontSize: 14 }}
+              placeholder="Buscar evento ou localidade..."
+              placeholderTextColor="#b5a49c"
+              style={{ flex: 1, color: Theme.colors.text, paddingVertical: 11, paddingLeft: 9, fontSize: 14 }}
             />
             {!!search && (
               <Pressable onPress={() => setSearch('')} hitSlop={8}>
-                <Ionicons name="close-circle" size={17} color={Theme.light.textMuted} />
+                <Ionicons name="close-circle" size={17} color={Theme.colors.textMuted} />
               </Pressable>
             )}
           </View>
-        </View>
 
-        {/* Categorias */}
-        {categories.length > 0 && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              alignSelf: 'flex-start',
+              gap: 6,
+              backgroundColor: '#fff',
+              borderRadius: Theme.radius.pill,
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              ...Theme.shadowLight.sm,
+            }}
+          >
+            <Ionicons
+              name={mapLoading ? 'hourglass-outline' : 'location'}
+              size={13}
+              color={Theme.colors.accentDark}
+            />
+            <Text style={{ color: Theme.colors.textMuted, fontSize: 12, fontWeight: '600' }}>
+              {mapLoading ? 'Carregando eventos...' : `${markerCount} evento(s) localizado(s)`}
+            </Text>
+          </View>
+
+          {!!locationError && (
+            <View
+              style={{
+                alignSelf: 'flex-start',
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                borderRadius: Theme.radius.pill,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ color: Theme.colors.textMuted, fontSize: 11 }}>{locationError}</Text>
+            </View>
+          )}
+        </View>
+      </SafeAreaView>
+
+      <SafeAreaView style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }} pointerEvents="box-none" edges={['bottom']}>
+        <View style={{ alignItems: 'center', paddingBottom: 14 }} pointerEvents="box-none">
           <FlatList
             horizontal
-            data={['Todos', ...categories]}
-            keyExtractor={(item) => item}
+            data={categoriasVisiveis}
+            keyExtractor={(item) => item.nome}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 6, paddingBottom: 10 }}
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.96)',
+              borderRadius: Theme.radius.pill,
+              maxWidth: '92%',
+              ...Theme.shadowLight.md,
+            }}
+            contentContainerStyle={{ padding: 6, gap: 4, alignItems: 'center' }}
+            ListFooterComponent={
+              <Pressable
+                onPress={() => setMostrarExtras((v) => !v)}
+                style={({ pressed }) => ({
+                  width: 34,
+                  height: 34,
+                  borderRadius: 17,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: pressed ? Theme.light.surfaceAlt : 'transparent',
+                })}
+              >
+                <Ionicons name={mostrarExtras ? 'close' : 'ellipsis-horizontal'} size={17} color={Theme.colors.textMuted} />
+              </Pressable>
+            }
             renderItem={({ item }) => {
-              const active = item === 'Todos' ? !category : category === item;
-              const icon = item === 'Todos' ? 'apps-outline' : CATEGORY_ICONS[item] ?? 'grid-outline';
+              const active = category === item.nome;
               return (
                 <Pressable
-                  onPress={() => setCategory(item === 'Todos' ? null : item)}
+                  onPress={() => setCategory(item.nome)}
                   style={({ pressed }) => ({
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 5,
-                    backgroundColor: active ? Theme.colors.accent : Theme.light.surface,
-                    borderWidth: 1,
-                    borderColor: active ? Theme.colors.accent : Theme.light.border,
+                    gap: 6,
+                    paddingHorizontal: 13,
+                    paddingVertical: 9,
                     borderRadius: Theme.radius.pill,
-                    paddingHorizontal: 11,
-                    paddingVertical: 6,
-                    opacity: pressed ? 0.72 : 1,
+                    backgroundColor: active ? item.cor : 'transparent',
+                    opacity: pressed ? 0.75 : 1,
                   })}
                 >
-                  <Ionicons name={icon} size={12} color={active ? Theme.colors.primaryDark : Theme.light.textMuted} />
+                  <Ionicons name={item.icone} size={13} color={active ? '#fff' : item.cor} />
                   <Text
                     style={{
-                      color: active ? Theme.colors.primaryDark : Theme.light.textMuted,
-                      fontSize: 11.5,
-                      fontWeight: active ? '700' : '500',
+                      fontSize: 12.5,
+                      fontWeight: '600',
+                      color: active ? '#fff' : Theme.colors.textMuted,
                     }}
                   >
-                    {item}
+                    {item.nome}
                   </Text>
                 </Pressable>
               );
             }}
-          />
-        )}
-
-        {!!locationError && (
-          <Text style={{ color: Theme.light.textMuted, fontSize: 11.5, textAlign: 'center', marginBottom: 6 }}>
-            {locationError}
-          </Text>
-        )}
-
-        {/* Mapa */}
-        <View style={{ flex: 1, marginHorizontal: 20, marginBottom: 16, borderRadius: Theme.radius.lg, overflow: 'hidden', ...Theme.shadowLight.md }}>
-          <WebView
-            ref={webviewRef}
-            source={{ html: MAP_HTML }}
-            onMessage={onMessage}
-            javaScriptEnabled
-            geolocationEnabled
-            originWhitelist={['*']}
-            startInLoadingState
-            renderLoading={() => (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Theme.light.bg }}>
-                <ActivityIndicator color={Theme.colors.primary} />
-              </View>
-            )}
           />
         </View>
       </SafeAreaView>

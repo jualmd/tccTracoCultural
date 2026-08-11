@@ -2,6 +2,12 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
 
+// Garante que a tela de boas-vindas seja a primeira exibida ao abrir o app,
+// mesmo com o Tabs (o back gesture cai no welcome, não direto na Home).
+export const unstable_settings = {
+  initialRouteName: 'welcome',
+};
+
 export default function TabsLayout() {
   return (
     <Tabs
@@ -28,6 +34,10 @@ export default function TabsLayout() {
         },
       }}
     >
+      <Tabs.Screen
+        name="welcome"
+        options={{ href: null, tabBarStyle: { display: 'none' } }}
+      />
       <Tabs.Screen
         name="login"
         options={{ href: null, tabBarStyle: { display: 'none' } }}
@@ -58,6 +68,15 @@ export default function TabsLayout() {
           title: 'Início',
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="mapa"
+        options={{
+          title: 'Mapa',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="map" size={24} color={color} />
           ),
         }}
       />

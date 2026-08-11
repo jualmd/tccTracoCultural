@@ -2,13 +2,13 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -72,79 +72,105 @@ export default function Home() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        {/* ── Header ── */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 20,
-            paddingTop: 16,
-            paddingBottom: 8,
-          }}
-        >
-          <View>
-            <Text
-              style={{
-                color: Theme.colors.primary,
-                fontSize: 11,
-                fontWeight: '700',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                marginBottom: 6,
-              }}
-            >
-              Descubra
-            </Text>
-            <Image
-              source={require('@/assets/images/tracocult.logo.png')}
-              style={{ height: 32, width: 160 }}
-              resizeMode="contain"
-            />
-          </View>
+    <View style={{ flex: 1, backgroundColor: Theme.colors.primaryDark }}>
+      <LinearGradient
+        colors={Theme.gradient.primary}
+        start={{ x: 0.15, y: 0.05 }}
+        end={{ x: 0.85, y: 1 }}
+        style={{ position: 'absolute', inset: 0 } as any}
+      />
+      {/* manchas decorativas — espelha .home-hero::before/::after */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          width: 340,
+          height: 340,
+          borderRadius: 170,
+          top: -130,
+          right: -90,
+          backgroundColor: 'rgba(212,163,115,0.16)',
+        }}
+      />
 
-          {/* Avatar */}
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* ── Hero ── */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
           <View
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              alignSelf: 'flex-start',
+              backgroundColor: 'rgba(212,163,115,0.15)',
+              borderWidth: 1,
+              borderColor: 'rgba(212,163,115,0.3)',
+              borderRadius: Theme.radius.pill,
+              paddingHorizontal: 12,
+              paddingVertical: 5,
+              marginBottom: 10,
+            }}
+          >
+            <Ionicons name="sparkles-outline" size={12} color={Theme.colors.accent} />
+            <Text
+              style={{
+                color: Theme.colors.accent,
+                fontSize: 10.5,
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+              }}
+            >
+              Sua agenda cultural
+            </Text>
+          </View>
+
+          <Text style={{ color: '#fff', fontSize: 26, fontWeight: '800', letterSpacing: -0.5, lineHeight: 31 }}>
+            Descubra o que{'\n'}
+            <Text style={{ color: Theme.colors.accent }}>acontece perto de você</Text>
+          </Text>
+
+          {/* Avatar no canto */}
+          <View
+            style={{
+              position: 'absolute',
+              top: 14,
+              right: 20,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
               backgroundColor: Theme.colors.accent,
               justifyContent: 'center',
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '800', color: Theme.colors.primaryDark }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: Theme.colors.primaryDark }}>
               {user?.nome?.charAt(0).toUpperCase() ?? '?'}
             </Text>
           </View>
         </View>
 
-        {/* ── Busca ── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 8, marginBottom: 16 }}>
+        {/* ── Busca (glass, espelha .search-container) ── */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 14 }}>
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: Theme.light.surface,
-              borderWidth: 1,
-              borderColor: Theme.light.border,
+              backgroundColor: '#fff',
               borderRadius: Theme.radius.pill,
               paddingHorizontal: 14,
-              ...Theme.shadowLight.sm,
+              ...Theme.shadow.card,
             }}
           >
             <Ionicons name="search-outline" size={17} color={Theme.colors.primary} />
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Buscar eventos..."
+              placeholder="Pesquisar eventos, artistas ou lugares..."
               placeholderTextColor="#b0a09e"
               style={{
                 flex: 1,
-                color: Theme.light.text,
+                color: Theme.colors.text,
                 paddingVertical: 12,
                 paddingLeft: 9,
                 fontSize: 14,
@@ -152,13 +178,13 @@ export default function Home() {
             />
             {!!search && (
               <Pressable onPress={() => setSearch('')} hitSlop={8}>
-                <Ionicons name="close-circle" size={17} color={Theme.light.textMuted} />
+                <Ionicons name="close-circle" size={17} color={Theme.colors.textMuted} />
               </Pressable>
             )}
           </View>
         </View>
 
-        {/* ── Categorias com ícone ── */}
+        {/* ── Categorias (chips glass sobre o fundo escuro) ── */}
         {categories.length > 0 && (
           <FlatList
             horizontal
@@ -182,9 +208,9 @@ export default function Home() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 5,
-                    backgroundColor: active ? Theme.colors.accent : Theme.light.surface,
+                    backgroundColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.08)',
                     borderWidth: 1,
-                    borderColor: active ? Theme.colors.accent : Theme.light.border,
+                    borderColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.18)',
                     borderRadius: Theme.radius.pill,
                     paddingHorizontal: 11,
                     paddingVertical: 6,
@@ -192,11 +218,11 @@ export default function Home() {
                     ...(active
                       ? {
                           shadowColor: Theme.colors.accent,
-                          shadowOpacity: 0.35,
+                          shadowOpacity: 0.4,
                           shadowRadius: 8,
                           shadowOffset: { width: 0, height: 3 },
                           elevation: 4,
-                          boxShadow: '0px 3px 8px rgba(212,163,115,0.35)',
+                          boxShadow: '0px 3px 8px rgba(212,163,115,0.4)',
                         }
                       : {}),
                   })}
@@ -204,11 +230,11 @@ export default function Home() {
                   <Ionicons
                     name={icon}
                     size={12}
-                    color={active ? Theme.colors.primaryDark : Theme.light.textMuted}
+                    color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)'}
                   />
                   <Text
                     style={{
-                      color: active ? Theme.colors.primaryDark : Theme.light.textMuted,
+                      color: active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)',
                       fontSize: 11.5,
                       fontWeight: active ? '700' : '500',
                       letterSpacing: 0.1,
@@ -222,7 +248,42 @@ export default function Home() {
           />
         )}
 
-        {/* ── Lista de eventos ── */}
+        {/* ── Cabeçalho de resultados ── */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+            {category ?? 'Todos os eventos'}
+          </Text>
+          {!loading && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: 'rgba(212,163,115,0.15)',
+                borderWidth: 1,
+                borderColor: 'rgba(212,163,115,0.25)',
+                borderRadius: Theme.radius.pill,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+              }}
+            >
+              <Ionicons name="calendar-outline" size={11} color={Theme.colors.accent} />
+              <Text style={{ color: Theme.colors.accent, fontSize: 11, fontWeight: '700' }}>
+                {filteredEvents.length} {filteredEvents.length === 1 ? 'evento' : 'eventos'}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* ── Lista de eventos (cards glass) ── */}
         <FlatList
           data={filteredEvents}
           keyExtractor={(item) => String(item.id)}
@@ -237,27 +298,21 @@ export default function Home() {
                   width: 80,
                   height: 80,
                   borderRadius: 40,
-                  backgroundColor: Theme.light.surface,
+                  backgroundColor: 'rgba(255,255,255,0.08)',
                   borderWidth: 1,
-                  borderColor: Theme.light.border,
+                  borderColor: 'rgba(255,255,255,0.18)',
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginBottom: 16,
                 }}
               >
                 {loading ? (
-                  <ActivityIndicator color={Theme.colors.primary} />
+                  <ActivityIndicator color={Theme.colors.accent} />
                 ) : (
-                  <Ionicons name="calendar-outline" size={32} color={Theme.light.textMuted} />
+                  <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.5)" />
                 )}
               </View>
-              <Text
-                style={{
-                  color: Theme.light.textMuted,
-                  fontSize: 14,
-                  fontWeight: '500',
-                }}
-              >
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: '500' }}>
                 {error || 'Nenhum evento encontrado'}
               </Text>
             </View>
@@ -265,6 +320,7 @@ export default function Home() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
+              variant="dark"
               onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
