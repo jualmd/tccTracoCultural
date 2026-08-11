@@ -1,17 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { AuthLayout, authSubmitStyle } from '@/components/auth-layout';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { reenviarCodigo, verificarCodigoCadastro } from '@/services/auth-service';
@@ -35,8 +25,6 @@ export default function VerificarCodigo() {
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    // Se veio de um login bloqueado (email não confirmado), o código do
-    // cadastro pode ter expirado -- reenvia um novo automaticamente.
     if (params.origem === 'login' && email) {
       reenviarCodigo(email).catch(() => {});
     }
@@ -92,138 +80,95 @@ export default function VerificarCodigo() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 32 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={{ alignItems: 'center', marginBottom: 24 }}>
-              <View
-                style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  backgroundColor: Theme.light.surfaceAlt,
-                  alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-                }}
-              >
-                <Ionicons name="mail-open-outline" size={26} color={Theme.colors.primary} />
-              </View>
-              <Text style={{ color: Theme.light.text, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>
-                Confirme seu email
-              </Text>
-              <Text style={{ color: Theme.light.textMuted, fontSize: 14, textAlign: 'center', marginTop: 6 }}>
-                Enviamos um código de 6 dígitos para{'\n'}
-                <Text style={{ fontWeight: '700', color: Theme.light.text }}>{email}</Text>
-              </Text>
-            </View>
+    <AuthLayout
+      icon="mail-open-outline"
+      title="Falta pouco para confirmar sua conta"
+      subtitle="Digite o código que enviamos por email para ativar seu acesso ao Traço Cultural."
+    >
+      <Text style={{ color: Theme.colors.primaryDark, fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginBottom: 4 }}>
+        Confirme seu email
+      </Text>
+      <Text style={{ color: Theme.light.textMuted, fontSize: 13, fontWeight: '300', marginBottom: 24 }}>
+        {email ? (
+          <>Enviamos um código de 6 dígitos para <Text style={{ fontWeight: '700', color: Theme.light.text }}>{email}</Text></>
+        ) : (
+          'Digite o código de 6 dígitos que enviamos'
+        )}
+      </Text>
 
+      {!!erro && (
+        <View style={{ backgroundColor: '#fff0f0', borderLeftWidth: 4, borderLeftColor: '#e74c3c', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#c0392b', fontSize: 13, fontWeight: '500' }}>{erro}</Text>
+        </View>
+      )}
+      {sucesso && (
+        <View style={{ backgroundColor: '#f0faf4', borderLeftWidth: 4, borderLeftColor: '#2ecc71', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#1e7e47', fontSize: 13, fontWeight: '600' }}>Email confirmado com sucesso!</Text>
+        </View>
+      )}
+      {reenviado && !sucesso && (
+        <View style={{ backgroundColor: '#f0faf4', borderLeftWidth: 4, borderLeftColor: '#2ecc71', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#1e7e47', fontSize: 13, fontWeight: '600' }}>Código reenviado! Confira sua caixa de entrada.</Text>
+        </View>
+      )}
+
+      <Text style={{ color: Theme.light.text, fontWeight: '600', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
+        Código de confirmação
+      </Text>
+      <View style={{ position: 'relative', marginBottom: 22 }}>
+        <TextInput
+          ref={inputRef}
+          value={codigo}
+          onChangeText={(v) => { setCodigo(v.replace(/\D/g, '').slice(0, TAMANHO_CODIGO)); setErro(''); }}
+          keyboardType="number-pad"
+          maxLength={TAMANHO_CODIGO}
+          autoFocus
+          editable={!loading && !sucesso}
+          style={{ position: 'absolute', opacity: 0, width: '100%', height: 54 }}
+        />
+        <Pressable onPress={() => inputRef.current?.focus()} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 6 }}>
+          {digitos.map((d, i) => (
             <View
+              key={i}
               style={{
-                backgroundColor: Theme.light.surface,
-                borderRadius: Theme.radius.lg,
-                borderWidth: 1,
-                borderColor: Theme.light.border,
-                padding: 24,
-                ...Theme.shadowLight.md,
+                flex: 1,
+                aspectRatio: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#fbf7f2',
+                borderBottomWidth: 3,
+                borderBottomColor: erro ? '#e74c3c' : (i === codigo.length ? Theme.colors.accentDark : '#ece3dc'),
+                borderTopLeftRadius: 6,
+                borderTopRightRadius: 6,
               }}
             >
-              {!!erro && (
-                <Text style={{ color: Theme.colors.danger, fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
-                  {erro}
-                </Text>
-              )}
-              {sucesso && (
-                <Text style={{ color: Theme.colors.success, fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
-                  Email confirmado com sucesso!
-                </Text>
-              )}
-              {reenviado && !sucesso && (
-                <Text style={{ color: Theme.colors.success, fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
-                  Código reenviado! Confira sua caixa de entrada.
-                </Text>
-              )}
-
-              {/* input real invisível por cima das caixinhas visuais */}
-              <View style={{ position: 'relative', marginBottom: 20 }}>
-                <TextInput
-                  ref={inputRef}
-                  value={codigo}
-                  onChangeText={(v) => { setCodigo(v.replace(/\D/g, '').slice(0, TAMANHO_CODIGO)); setErro(''); }}
-                  keyboardType="number-pad"
-                  maxLength={TAMANHO_CODIGO}
-                  autoFocus
-                  editable={!loading && !sucesso}
-                  style={{ position: 'absolute', opacity: 0, width: '100%', height: 52 }}
-                />
-                <Pressable
-                  onPress={() => inputRef.current?.focus()}
-                  style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                >
-                  {digitos.map((d, i) => (
-                    <View
-                      key={i}
-                      style={{
-                        width: 44, height: 52, borderRadius: 12,
-                        borderWidth: 1.5,
-                        borderColor: erro && !sucesso ? Theme.colors.danger : (i === codigo.length ? Theme.colors.accent : Theme.light.border),
-                        backgroundColor: Theme.light.surfaceAlt,
-                        alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 20, fontWeight: '700', color: Theme.light.text }}>
-                        {d.trim()}
-                      </Text>
-                    </View>
-                  ))}
-                </Pressable>
-              </View>
-
-              <Pressable
-                onPress={handleConfirmar}
-                disabled={loading || sucesso}
-                style={({ pressed }) => ({
-                  backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
-                  borderRadius: Theme.radius.pill,
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  ...Theme.shadow.accent,
-                })}
-              >
-                {loading ? (
-                  <ActivityIndicator color={Theme.colors.primaryDark} />
-                ) : (
-                  <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 16 }}>
-                    Confirmar código
-                  </Text>
-                )}
-              </Pressable>
-
-              <View style={{ alignItems: 'center', marginTop: 18 }}>
-                <Text style={{ color: Theme.light.textMuted, fontSize: 13 }}>
-                  Não recebeu o código?{' '}
-                  {contador > 0 ? (
-                    <Text style={{ color: Theme.light.textMuted }}>Reenviar em {contador}s</Text>
-                  ) : (
-                    <Text
-                      onPress={reenviando ? undefined : handleReenviar}
-                      style={{ color: Theme.colors.primary, fontWeight: '700' }}
-                    >
-                      {reenviando ? 'Reenviando...' : 'Reenviar código'}
-                    </Text>
-                  )}
-                </Text>
-              </View>
-
-              <Pressable onPress={() => router.replace('/(tabs)/login' as never)} style={{ alignItems: 'center', marginTop: 14 }}>
-                <Text style={{ color: Theme.colors.primary, fontSize: 13, fontWeight: '600' }}>
-                  Voltar para o login
-                </Text>
-              </Pressable>
+              <Text style={{ fontSize: 19, fontWeight: '700', color: Theme.colors.accentDark }}>{d.trim()}</Text>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+          ))}
+        </Pressable>
+      </View>
+
+      <Pressable onPress={handleConfirmar} disabled={loading || sucesso} style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading || sucesso })}>
+        {loading ? <ActivityIndicator color="#fff" /> : (
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Confirmar código</Text>
+        )}
+      </Pressable>
+
+      <View style={{ marginTop: 26, gap: 10 }}>
+        <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>
+          Não recebeu o código?{' '}
+          {contador > 0 ? (
+            <Text style={{ color: Theme.light.textMuted, fontWeight: '600' }}>Reenviar em {contador}s</Text>
+          ) : (
+            <Text onPress={reenviando ? undefined : handleReenviar} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
+              {reenviando ? 'Reenviando...' : 'Reenviar código'}
+            </Text>
+          )}
+        </Text>
+        <Text onPress={() => router.replace('/(tabs)/login' as never)} style={{ color: '#b3a9a3', fontSize: 12.5 }}>
+          Voltar para o login
+        </Text>
+      </View>
+    </AuthLayout>
   );
 }

@@ -1,17 +1,7 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { AuthField, AuthLayout, authInputStyle, authSubmitStyle } from '@/components/auth-layout';
 import { Theme } from '@/constants/theme';
 import { esqueciSenha } from '@/services/auth-service';
 
@@ -32,116 +22,62 @@ export default function EsqueciSenha() {
     setLoading(true);
     try {
       await esqueciSenha(email.trim());
-      router.push({
-        pathname: '/(tabs)/redefinir-senha',
-        params: { email: email.trim() },
-      } as never);
-    } catch (err: any) {
-      // Por segurança o backend pode não confirmar se o email existe;
-      // mesmo assim seguimos pra tela de código.
-      router.push({
-        pathname: '/(tabs)/redefinir-senha',
-        params: { email: email.trim() },
-      } as never);
+    } catch {
+      // por segurança seguimos pra tela de código mesmo se o backend
+      // não confirmar se o email existe.
     } finally {
       setLoading(false);
+      router.push({ pathname: '/(tabs)/redefinir-senha', params: { email: email.trim() } } as never);
     }
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 32 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={{ alignItems: 'center', marginBottom: 24 }}>
-              <View
-                style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  backgroundColor: Theme.light.surfaceAlt,
-                  alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-                }}
-              >
-                <Ionicons name="lock-closed-outline" size={26} color={Theme.colors.primary} />
-              </View>
-              <Text style={{ color: Theme.light.text, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>
-                Vamos recuperar o acesso à sua conta
-              </Text>
-              <Text style={{ color: Theme.light.textMuted, fontSize: 14, textAlign: 'center', marginTop: 6 }}>
-                Informe o email cadastrado e enviaremos um código de confirmação.
-              </Text>
-            </View>
+    <AuthLayout
+      icon="lock-closed-outline"
+      title="Vamos recuperar o acesso à sua conta"
+      subtitle="Informe o email cadastrado e enviaremos um código para redefinir sua senha."
+    >
+      <Text style={{ color: Theme.colors.primaryDark, fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginBottom: 4 }}>
+        Esqueceu sua senha?
+      </Text>
+      <Text style={{ color: Theme.light.textMuted, fontSize: 13, fontWeight: '300', marginBottom: 26 }}>
+        Digite seu email e enviaremos um código para redefinir sua senha
+      </Text>
 
-            <View
-              style={{
-                backgroundColor: Theme.light.surface,
-                borderRadius: Theme.radius.lg,
-                borderWidth: 1,
-                borderColor: Theme.light.border,
-                padding: 24,
-                ...Theme.shadowLight.md,
-              }}
-            >
-              <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginBottom: 6 }}>Email</Text>
-              <TextInput
-                value={email}
-                onChangeText={(v) => { setEmail(v); setErro(''); }}
-                placeholder="seu@email.com"
-                placeholderTextColor="#b0a09e"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoFocus
-                style={{
-                  backgroundColor: Theme.light.surfaceAlt,
-                  borderRadius: Theme.radius.pill,
-                  paddingHorizontal: 18,
-                  paddingVertical: 13,
-                  color: Theme.light.text,
-                  fontSize: 15,
-                  borderWidth: 1,
-                  borderColor: erro ? Theme.colors.danger : Theme.light.border,
-                  marginBottom: 4,
-                }}
-              />
-              {!!erro && (
-                <Text style={{ color: Theme.colors.danger, fontSize: 12, marginBottom: 8, marginLeft: 4 }}>
-                  {erro}
-                </Text>
-              )}
+      {!!erro && (
+        <View style={{ backgroundColor: '#fff0f0', borderLeftWidth: 4, borderLeftColor: '#e74c3c', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#c0392b', fontSize: 13, fontWeight: '500' }}>{erro}</Text>
+        </View>
+      )}
 
-              <Pressable
-                onPress={handleEnviar}
-                disabled={loading}
-                style={({ pressed }) => ({
-                  backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
-                  borderRadius: Theme.radius.pill,
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  marginTop: 16,
-                  ...Theme.shadow.accent,
-                })}
-              >
-                {loading ? (
-                  <ActivityIndicator color={Theme.colors.primaryDark} />
-                ) : (
-                  <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 16 }}>
-                    Enviar código
-                  </Text>
-                )}
-              </Pressable>
+      <AuthField label="Email" icon="mail-outline" error={undefined}>
+        <TextInput
+          value={email}
+          onChangeText={(v) => { setEmail(v); setErro(''); }}
+          placeholder="seu@email.com"
+          placeholderTextColor="#cabdb5"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoFocus
+          style={[authInputStyle, erro ? { borderBottomColor: '#e74c3c' } : null]}
+        />
+      </AuthField>
 
-              <Pressable onPress={() => router.back()} style={{ alignItems: 'center', marginTop: 18 }}>
-                <Text style={{ color: Theme.colors.primary, fontSize: 13, fontWeight: '600' }}>
-                  Voltar para o login
-                </Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+      <Pressable onPress={handleEnviar} disabled={loading} style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading })}>
+        {loading ? <ActivityIndicator color="#fff" /> : (
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Enviar código</Text>
+        )}
+      </Pressable>
+
+      <View style={{ marginTop: 30, gap: 10 }}>
+        <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>
+          Lembrou a senha?{' '}
+          <Text onPress={() => router.back()} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
+            Entrar
+          </Text>
+        </Text>
+      </View>
+    </AuthLayout>
   );
 }

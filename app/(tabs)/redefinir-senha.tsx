@@ -1,17 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { AuthField, AuthLayout, authInputStyle, authSubmitStyle } from '@/components/auth-layout';
 import { Theme } from '@/constants/theme';
 import { esqueciSenha, redefinirSenha, validarCodigo } from '@/services/auth-service';
 
@@ -27,12 +18,14 @@ export default function RedefinirSenha() {
   const [codigo, setCodigo] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [showSenha, setShowSenha] = useState(false);
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [verificando, setVerificando] = useState(false);
   const [codigoConfirmado, setCodigoConfirmado] = useState<boolean | null>(null);
   const [reenviando, setReenviando] = useState(false);
+  const [reenviado, setReenviado] = useState(false);
   const [contador, setContador] = useState(TEMPO_REENVIO);
 
   useEffect(() => {
@@ -54,15 +47,9 @@ export default function RedefinirSenha() {
     setErro('');
     setVerificando(true);
     try {
-      // validarCodigo (não consome) -- NUNCA usar verificarCodigoCadastro
-      // aqui, ele confirma a conta e apaga o código.
       const data = await validarCodigo(email, codigo);
-      if (data?.valido) {
-        setCodigoConfirmado(true);
-      } else {
-        setCodigoConfirmado(false);
-        setErro('Código incorreto ou expirado.');
-      }
+      if (data?.valido) setCodigoConfirmado(true);
+      else { setCodigoConfirmado(false); setErro('Código incorreto ou expirado.'); }
     } catch (err: any) {
       setCodigoConfirmado(false);
       setErro(err.response?.data?.message ?? 'Não foi possível verificar o código agora.');
@@ -77,9 +64,11 @@ export default function RedefinirSenha() {
     setReenviando(true);
     try {
       await esqueciSenha(email);
+      setReenviado(true);
       setContador(TEMPO_REENVIO);
       setCodigo('');
       setCodigoConfirmado(null);
+      setTimeout(() => setReenviado(false), 4000);
     } catch (err: any) {
       setErro(err.response?.data?.message ?? 'Não foi possível reenviar o código.');
     } finally {
@@ -93,7 +82,7 @@ export default function RedefinirSenha() {
       return;
     }
     if (!SENHA_FORTE_REGEX.test(novaSenha)) {
-      setErro('A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e um caractere especial.');
+      setErro('A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma minúscula, um número e um caractere especial.');
       return;
     }
     if (novaSenha !== confirmarSenha) {
@@ -117,193 +106,150 @@ export default function RedefinirSenha() {
     }
   }
 
+  const digitos = codigo.padEnd(TAMANHO_CODIGO, ' ').split('');
+  const revelado = codigoConfirmado === true;
+
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 32 }}
-            keyboardShouldPersistTaps="handled"
+    <AuthLayout
+      icon="shield-checkmark-outline"
+      title="Vamos recuperar o acesso à sua conta"
+      subtitle="Confirme o código enviado por email e escolha uma nova senha para continuar explorando o Traço Cultural."
+    >
+      <Text style={{ color: Theme.colors.primaryDark, fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginBottom: 4 }}>
+        Redefinir senha
+      </Text>
+      <Text style={{ color: Theme.light.textMuted, fontSize: 13, fontWeight: '300', marginBottom: 24 }}>
+        {email ? (
+          <>Enviamos um código de 6 dígitos para <Text style={{ fontWeight: '700', color: Theme.light.text }}>{email}</Text></>
+        ) : (
+          'Digite o código recebido e a nova senha'
+        )}
+      </Text>
+
+      {!!erro && (
+        <View style={{ backgroundColor: '#fff0f0', borderLeftWidth: 4, borderLeftColor: '#e74c3c', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#c0392b', fontSize: 13, fontWeight: '500' }}>{erro}</Text>
+        </View>
+      )}
+      {sucesso && (
+        <View style={{ backgroundColor: '#f0faf4', borderLeftWidth: 4, borderLeftColor: '#2ecc71', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#1e7e47', fontSize: 13, fontWeight: '600' }}>Senha redefinida com sucesso! Redirecionando...</Text>
+        </View>
+      )}
+      {reenviado && (
+        <View style={{ backgroundColor: '#f0faf4', borderLeftWidth: 4, borderLeftColor: '#2ecc71', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+          <Text style={{ color: '#1e7e47', fontSize: 13, fontWeight: '600' }}>Código reenviado! Confira sua caixa de entrada.</Text>
+        </View>
+      )}
+
+      <Text style={{ color: Theme.light.text, fontWeight: '600', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
+        Código de confirmação
+      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 6, marginBottom: 10 }}>
+        {digitos.map((d, i) => (
+          <View
+            key={i}
+            style={{
+              flex: 1,
+              aspectRatio: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#fbf7f2',
+              borderBottomWidth: 3,
+              borderBottomColor: codigoConfirmado === false ? '#e74c3c' : (i === codigo.length ? Theme.colors.accentDark : '#ece3dc'),
+              borderTopLeftRadius: 6,
+              borderTopRightRadius: 6,
+            }}
           >
-            <View style={{ alignItems: 'center', marginBottom: 24 }}>
-              <View
-                style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  backgroundColor: Theme.light.surfaceAlt,
-                  alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-                }}
-              >
-                <Ionicons name="shield-checkmark-outline" size={26} color={Theme.colors.primary} />
-              </View>
-              <Text style={{ color: Theme.light.text, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>
-                Redefinir senha
-              </Text>
-              <Text style={{ color: Theme.light.textMuted, fontSize: 14, textAlign: 'center', marginTop: 6 }}>
-                Enviamos um código de 6 dígitos para{'\n'}
-                <Text style={{ fontWeight: '700', color: Theme.light.text }}>{email}</Text>
-              </Text>
-            </View>
+            <Text style={{ fontSize: 19, fontWeight: '700', color: Theme.colors.accentDark }}>{d.trim()}</Text>
+          </View>
+        ))}
+      </View>
+      {/* input real (invisível) para receber o teclado numérico */}
+      <TextInput
+        value={codigo}
+        onChangeText={onChangeCodigo}
+        keyboardType="number-pad"
+        maxLength={TAMANHO_CODIGO}
+        editable={!loading && !sucesso}
+        autoFocus
+        style={{ position: 'absolute', opacity: 0, height: 1, width: 1 }}
+      />
 
-            <View
-              style={{
-                backgroundColor: Theme.light.surface,
-                borderRadius: Theme.radius.lg,
-                borderWidth: 1,
-                borderColor: Theme.light.border,
-                padding: 24,
-                ...Theme.shadowLight.md,
-              }}
-            >
-              {!!erro && (
-                <Text style={{ color: Theme.colors.danger, fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
-                  {erro}
-                </Text>
-              )}
-              {sucesso && (
-                <Text style={{ color: Theme.colors.success, fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
-                  Senha redefinida com sucesso! Redirecionando...
-                </Text>
-              )}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+        <Text
+          onPress={verificando || loading || sucesso || codigo.length < TAMANHO_CODIGO ? undefined : handleVerificarCodigo}
+          style={{ color: Theme.colors.accentDark, fontWeight: '700', fontSize: 13, opacity: codigo.length < TAMANHO_CODIGO ? 0.5 : 1 }}
+        >
+          {verificando ? 'Verificando...' : 'Verificar código'}
+        </Text>
+        {revelado && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="checkmark-circle" size={15} color="#2ecc71" />
+            <Text style={{ color: '#2ecc71', fontSize: 12, fontWeight: '600' }}>Código confirmado</Text>
+          </View>
+        )}
+      </View>
 
-              <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginBottom: 6 }}>
-                Código de confirmação
-              </Text>
-              <TextInput
-                value={codigo}
-                onChangeText={onChangeCodigo}
-                placeholder="000000"
-                placeholderTextColor="#b0a09e"
-                keyboardType="number-pad"
-                maxLength={TAMANHO_CODIGO}
-                editable={!loading && !sucesso}
-                style={{
-                  backgroundColor: Theme.light.surfaceAlt,
-                  borderRadius: Theme.radius.pill,
-                  paddingHorizontal: 18,
-                  paddingVertical: 13,
-                  color: Theme.light.text,
-                  fontSize: 18,
-                  letterSpacing: 6,
-                  textAlign: 'center',
-                  borderWidth: 1,
-                  borderColor: codigoConfirmado === false ? Theme.colors.danger : Theme.light.border,
-                  marginBottom: 10,
-                }}
-              />
+      <View style={{ opacity: revelado ? 1 : 0.3 }} pointerEvents={revelado ? 'auto' : 'none'}>
+        <AuthField label="Nova senha" icon="lock-closed-outline">
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TextInput
+              value={novaSenha}
+              onChangeText={setNovaSenha}
+              placeholder="Ex: Traco123@"
+              placeholderTextColor="#cabdb5"
+              secureTextEntry={!showSenha}
+              editable={revelado && !loading && !sucesso}
+              style={[authInputStyle, { flex: 1 }]}
+            />
+            <Pressable onPress={() => setShowSenha((p) => !p)} hitSlop={8} style={{ paddingBottom: 10 }}>
+              <Ionicons name={showSenha ? 'eye-off-outline' : 'eye-outline'} size={17} color={Theme.colors.accentDark} />
+            </Pressable>
+          </View>
+        </AuthField>
+        <Text style={{ color: Theme.light.textMuted, fontSize: 11, lineHeight: 17, marginTop: -10, marginBottom: 18 }}>
+          Mín. 8 caracteres, maiúscula, minúscula, número e caractere especial (@, $, !, %, *, ?, &).
+        </Text>
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <Pressable
-                  onPress={handleVerificarCodigo}
-                  disabled={verificando || loading || sucesso || codigo.length < TAMANHO_CODIGO}
-                >
-                  <Text style={{ color: Theme.colors.primary, fontWeight: '700', fontSize: 13 }}>
-                    {verificando ? 'Verificando...' : 'Verificar código'}
-                  </Text>
-                </Pressable>
-                {codigoConfirmado === true && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Ionicons name="checkmark-circle" size={16} color={Theme.colors.success} />
-                    <Text style={{ color: Theme.colors.success, fontSize: 12, fontWeight: '600' }}>
-                      Código confirmado
-                    </Text>
-                  </View>
-                )}
-              </View>
+        <AuthField label="Confirmar nova senha" icon="lock-closed">
+          <TextInput
+            value={confirmarSenha}
+            onChangeText={setConfirmarSenha}
+            placeholder="Repita a nova senha"
+            placeholderTextColor="#cabdb5"
+            secureTextEntry={!showSenha}
+            editable={revelado && !loading && !sucesso}
+            style={authInputStyle}
+          />
+        </AuthField>
+      </View>
 
-              {codigoConfirmado === true && (
-                <>
-                  <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginBottom: 6 }}>Nova senha</Text>
-                  <TextInput
-                    value={novaSenha}
-                    onChangeText={setNovaSenha}
-                    placeholder="Ex: Traco123@"
-                    placeholderTextColor="#b0a09e"
-                    secureTextEntry
-                    editable={!loading && !sucesso}
-                    style={{
-                      backgroundColor: Theme.light.surfaceAlt,
-                      borderRadius: Theme.radius.pill,
-                      paddingHorizontal: 18,
-                      paddingVertical: 13,
-                      color: Theme.light.text,
-                      fontSize: 15,
-                      borderWidth: 1,
-                      borderColor: Theme.light.border,
-                      marginBottom: 4,
-                    }}
-                  />
-                  <Text style={{ color: Theme.light.textMuted, fontSize: 11, marginBottom: 12, lineHeight: 16 }}>
-                    Mín. 8 caracteres, maiúscula, minúscula, número e caractere especial (@, $, !, %, *, ?, &).
-                  </Text>
+      <Pressable
+        onPress={handleSubmit}
+        disabled={loading || sucesso || !revelado}
+        style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading || sucesso || !revelado })}
+      >
+        {loading ? <ActivityIndicator color="#fff" /> : (
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Redefinir senha</Text>
+        )}
+      </Pressable>
 
-                  <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginBottom: 6 }}>Confirmar nova senha</Text>
-                  <TextInput
-                    value={confirmarSenha}
-                    onChangeText={setConfirmarSenha}
-                    placeholder="Repita a nova senha"
-                    placeholderTextColor="#b0a09e"
-                    secureTextEntry
-                    editable={!loading && !sucesso}
-                    style={{
-                      backgroundColor: Theme.light.surfaceAlt,
-                      borderRadius: Theme.radius.pill,
-                      paddingHorizontal: 18,
-                      paddingVertical: 13,
-                      color: Theme.light.text,
-                      fontSize: 15,
-                      borderWidth: 1,
-                      borderColor: Theme.light.border,
-                      marginBottom: 16,
-                    }}
-                  />
-                </>
-              )}
-
-              <Pressable
-                onPress={handleSubmit}
-                disabled={loading || sucesso || codigoConfirmado !== true}
-                style={({ pressed }) => ({
-                  backgroundColor: codigoConfirmado !== true ? Theme.light.border : (pressed ? Theme.colors.accentDark : Theme.colors.accent),
-                  borderRadius: Theme.radius.pill,
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  ...(codigoConfirmado === true ? Theme.shadow.accent : {}),
-                })}
-              >
-                {loading ? (
-                  <ActivityIndicator color={Theme.colors.primaryDark} />
-                ) : (
-                  <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 16 }}>
-                    Redefinir senha
-                  </Text>
-                )}
-              </Pressable>
-
-              <View style={{ alignItems: 'center', marginTop: 18 }}>
-                <Text style={{ color: Theme.light.textMuted, fontSize: 13 }}>
-                  Não recebeu o código?{' '}
-                  {contador > 0 ? (
-                    <Text style={{ color: Theme.light.textMuted }}>Reenviar em {contador}s</Text>
-                  ) : (
-                    <Text
-                      onPress={reenviando ? undefined : handleReenviar}
-                      style={{ color: Theme.colors.primary, fontWeight: '700' }}
-                    >
-                      {reenviando ? 'Reenviando...' : 'Reenviar código'}
-                    </Text>
-                  )}
-                </Text>
-              </View>
-
-              <Pressable onPress={() => router.replace('/(tabs)/login' as never)} style={{ alignItems: 'center', marginTop: 14 }}>
-                <Text style={{ color: Theme.colors.primary, fontSize: 13, fontWeight: '600' }}>
-                  Voltar para o login
-                </Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+      <View style={{ marginTop: 26, gap: 10 }}>
+        <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>
+          Não recebeu o código?{' '}
+          {contador > 0 ? (
+            <Text style={{ color: Theme.light.textMuted, fontWeight: '600' }}>Reenviar em {contador}s</Text>
+          ) : (
+            <Text onPress={reenviando ? undefined : handleReenviar} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
+              {reenviando ? 'Reenviando...' : 'Reenviar código'}
+            </Text>
+          )}
+        </Text>
+        <Text onPress={() => router.replace('/(tabs)/login' as never)} style={{ color: '#b3a9a3', fontSize: 12.5 }}>
+          Voltar para o login
+        </Text>
+      </View>
+    </AuthLayout>
   );
 }

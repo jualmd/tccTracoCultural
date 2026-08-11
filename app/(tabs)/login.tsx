@@ -1,19 +1,8 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { AuthField, AuthLayout, authInputStyle, authSubmitStyle } from '@/components/auth-layout';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { loginUsuario } from '@/services/auth-service';
@@ -48,8 +37,6 @@ export default function Login() {
     } catch (error: any) {
       const status = error.response?.status;
       if (status === 403 && error.response?.data?.emailNaoConfirmado) {
-        // Conta existe mas o email ainda não foi confirmado -- manda pra
-        // tela de código, igual o front web faz (origem: 'login').
         router.push({
           pathname: '/(tabs)/verificar-codigo',
           params: { email: email.trim(), origem: 'login' },
@@ -69,151 +56,65 @@ export default function Login() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Theme.light.bg }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 32 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Logo */}
-            <View style={{ alignItems: 'center', marginBottom: 32 }}>
-              <Image
-                source={require('@/assets/images/tracocult.logo.png')}
-                style={{ height: 44, width: 200, marginBottom: 10 }}
-                resizeMode="contain"
-              />
-              <Text style={{ color: Theme.light.textMuted, fontSize: 14 }}>
-                Descubra eventos culturais da sua cidade
-              </Text>
-            </View>
+    <AuthLayout title="Que bom te ver de novo!" subtitle="Entre com sua conta para continuar descobrindo e organizando eventos culturais perto de você.">
+      <Text style={{ color: Theme.colors.primaryDark, fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginBottom: 4 }}>
+        Bem-vindo de volta
+      </Text>
+      <Text style={{ color: Theme.light.textMuted, fontSize: 13, fontWeight: '300', marginBottom: 26 }}>
+        Acesse sua conta Traço Cultural
+      </Text>
 
-            {/* Card */}
-            <View
-              style={{
-                backgroundColor: Theme.light.surface,
-                borderRadius: Theme.radius.lg,
-                borderWidth: 1,
-                borderColor: Theme.light.border,
-                padding: 24,
-                ...Theme.shadowLight.md,
-              }}
-            >
-              <Text style={{ color: Theme.light.text, fontSize: 20, fontWeight: '700', marginBottom: 20 }}>
-                Entrar
-              </Text>
+      <AuthField label="Email" icon="mail-outline" error={errors.email}>
+        <TextInput
+          value={email}
+          onChangeText={(v) => { setEmail(v); setErrors((p) => ({ ...p, email: '' })); }}
+          placeholder="seu@email.com"
+          placeholderTextColor="#cabdb5"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[authInputStyle, errors.email ? { borderBottomColor: '#e74c3c' } : null]}
+        />
+      </AuthField>
 
-              <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginBottom: 6 }}>Email</Text>
-              <TextInput
-                value={email}
-                onChangeText={(v) => { setEmail(v); setErrors((p) => ({ ...p, email: '' })); }}
-                placeholder="seu@email.com"
-                placeholderTextColor="#b0a09e"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                style={{
-                  backgroundColor: Theme.light.surfaceAlt,
-                  borderRadius: Theme.radius.pill,
-                  paddingHorizontal: 18,
-                  paddingVertical: 13,
-                  color: Theme.light.text,
-                  fontSize: 15,
-                  borderWidth: 1,
-                  borderColor: errors.email ? Theme.colors.danger : Theme.light.border,
-                  marginBottom: 4,
-                }}
-              />
-              {!!errors.email && (
-                <Text style={{ color: Theme.colors.danger, fontSize: 12, marginBottom: 8, marginLeft: 4 }}>
-                  {errors.email}
-                </Text>
-              )}
+      <View style={{ marginBottom: 6 }}>
+        <AuthField label="Senha" error={errors.senha}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TextInput
+              value={senha}
+              onChangeText={(v) => { setSenha(v); setErrors((p) => ({ ...p, senha: '' })); }}
+              placeholder="••••••••"
+              placeholderTextColor="#cabdb5"
+              secureTextEntry={!showSenha}
+              style={[authInputStyle, { flex: 1 }, errors.senha ? { borderBottomColor: '#e74c3c' } : null]}
+            />
+            <Pressable onPress={() => setShowSenha((p) => !p)} hitSlop={8} style={{ paddingBottom: 10 }}>
+              <Ionicons name={showSenha ? 'eye-off-outline' : 'eye-outline'} size={17} color={Theme.colors.accentDark} />
+            </Pressable>
+          </View>
+        </AuthField>
+        <Pressable onPress={() => router.push('/(tabs)/esqueci-senha' as never)} style={{ alignSelf: 'flex-end', marginTop: -12, marginBottom: 8 }}>
+          <Text style={{ color: Theme.colors.accentDark, fontSize: 12.5, fontWeight: '600' }}>Esqueceu a senha?</Text>
+        </Pressable>
+      </View>
 
-              <Text style={{ color: Theme.light.textMuted, fontSize: 13, marginBottom: 6, marginTop: 8 }}>Senha</Text>
-              <View style={{ position: 'relative' }}>
-                <TextInput
-                  value={senha}
-                  onChangeText={(v) => { setSenha(v); setErrors((p) => ({ ...p, senha: '' })); }}
-                  placeholder="••••••••"
-                  placeholderTextColor="#b0a09e"
-                  secureTextEntry={!showSenha}
-                  style={{
-                    backgroundColor: Theme.light.surfaceAlt,
-                    borderRadius: Theme.radius.pill,
-                    paddingHorizontal: 18,
-                    paddingVertical: 13,
-                    paddingRight: 46,
-                    color: Theme.light.text,
-                    fontSize: 15,
-                    borderWidth: 1,
-                    borderColor: errors.senha ? Theme.colors.danger : Theme.light.border,
-                    marginBottom: 4,
-                  }}
-                />
-                <Pressable
-                  onPress={() => setShowSenha((p) => !p)}
-                  hitSlop={8}
-                  style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
-                >
-                  <Ionicons
-                    name={showSenha ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color={Theme.light.textMuted}
-                  />
-                </Pressable>
-              </View>
-              {!!errors.senha && (
-                <Text style={{ color: Theme.colors.danger, fontSize: 12, marginBottom: 4, marginLeft: 4 }}>
-                  {errors.senha}
-                </Text>
-              )}
+      <Pressable onPress={handleLogin} disabled={loading} style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading })}>
+        {loading ? <ActivityIndicator color="#fff" /> : (
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Entrar</Text>
+        )}
+      </Pressable>
 
-              <Pressable
-                onPress={() => router.push('/(tabs)/esqueci-senha' as never)}
-                style={{ alignSelf: 'flex-end', marginTop: 4, marginBottom: 4 }}
-              >
-                <Text style={{ color: Theme.colors.primary, fontSize: 13, fontWeight: '600' }}>
-                  Esqueci minha senha
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleLogin}
-                disabled={loading}
-                style={({ pressed }) => ({
-                  backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
-                  borderRadius: Theme.radius.pill,
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  marginTop: 16,
-                  ...Theme.shadow.accent,
-                })}
-              >
-                {loading ? (
-                  <ActivityIndicator color={Theme.colors.primaryDark} />
-                ) : (
-                  <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 16 }}>
-                    Entrar
-                  </Text>
-                )}
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.push('/(tabs)/cadastrar' as never)}
-                style={({ pressed }) => ({ alignItems: 'center', marginTop: 18, opacity: pressed ? 0.65 : 1 })}
-              >
-                <Text style={{ color: Theme.colors.primary, fontWeight: '700', fontSize: 14 }}>
-                  Criar uma conta
-                </Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+      <View style={{ marginTop: 30, gap: 10 }}>
+        <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>
+          Não tem uma conta?{' '}
+          <Text onPress={() => router.push('/(tabs)/cadastrar' as never)} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
+            Cadastre-se
+          </Text>
+        </Text>
+        <Text onPress={() => router.push('/(tabs)/welcome' as never)} style={{ color: '#b3a9a3', fontSize: 12.5 }}>
+          ← Voltar ao início
+        </Text>
+      </View>
+    </AuthLayout>
   );
 }

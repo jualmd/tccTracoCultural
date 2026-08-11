@@ -10,6 +10,10 @@ type Props = {
   isFavorited: boolean;
   isOwner?: boolean;
   onEdit?: () => void;
+  /** 'light' (padrão) = card claro usado em Favoritos.
+   *  'dark' = card "glass" sobre o hero escuro, usado na Home
+   *  (espelha .event-card do HomePage.css). */
+  variant?: 'light' | 'dark';
 };
 
 function formatMeta(event: Evento): string {
@@ -26,22 +30,23 @@ function getImageSource(event: Evento) {
   return { uri: `data:image/jpeg;base64,${event.cardImage}` };
 }
 
-export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = false, onEdit }: Props) {
+export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = false, onEdit, variant = 'light' }: Props) {
   const category = event.categoria?.nome ?? 'Cultura';
+  const dark = variant === 'dark';
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        backgroundColor: Theme.light.surface,
-        borderRadius: Theme.radius.md,
+        backgroundColor: dark ? 'rgba(255,255,255,0.10)' : Theme.light.surface,
+        borderRadius: dark ? Theme.radius.lg : Theme.radius.md,
         borderWidth: 1,
-        borderColor: Theme.light.border,
+        borderColor: dark ? 'rgba(255,255,255,0.18)' : Theme.light.border,
         marginBottom: 14,
         overflow: 'hidden',
         opacity: pressed ? 0.92 : 1,
         transform: [{ scale: pressed ? 0.98 : 1 }],
-        ...Theme.shadowLight.sm,
+        ...(dark ? Theme.shadow.card : Theme.shadowLight.sm),
       })}
     >
       {/* Imagem responsiva */}
@@ -126,7 +131,7 @@ export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = f
       <View style={{ paddingHorizontal: 14, paddingTop: 11, paddingBottom: 13 }}>
         <Text
           style={{
-            color: Theme.light.text,
+            color: dark ? '#fff' : Theme.light.text,
             fontSize: 15,
             fontWeight: '700',
             lineHeight: 20,
@@ -139,10 +144,10 @@ export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = f
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          <Ionicons name="time-outline" size={11} color={Theme.colors.primary} />
+          <Ionicons name="time-outline" size={11} color={dark ? Theme.colors.accent : Theme.colors.primary} />
           <Text
             style={{
-              color: Theme.light.textMuted,
+              color: dark ? 'rgba(255,255,255,0.65)' : Theme.light.textMuted,
               fontSize: 11.5,
               fontWeight: '500',
               letterSpacing: 0.1,
