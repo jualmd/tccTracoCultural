@@ -34,6 +34,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       const eventos = await listarFavoritos();
       setFavoriteEvents(eventos);
       setFavorites(new Set(eventos.map((event) => String(event.id))));
+    } catch {
+      // Sessão inválida (401/403) já é tratada pelo interceptor do
+      // apiClient, que desloga e redireciona -- aqui só evitamos que a
+      // rejeição suba sem tratamento e derrube a tela.
+      setFavoriteEvents([]);
+      setFavorites(new Set());
     } finally {
       setLoadingFavorites(false);
     }
@@ -101,4 +107,3 @@ export function useFavorites() {
   if (!ctx) throw new Error('useFavorites must be used inside FavoritesProvider');
   return ctx;
 }
-

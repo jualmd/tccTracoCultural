@@ -33,7 +33,17 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+
+    // O backend não tem um AuthenticationEntryPoint customizado, então
+    // token ausente/inválido/expirado cai no 403 padrão do Spring Security
+    // em vez de 401 -- por isso tratamos os dois como "sessão inválida".
+    // Exceção: 403 com corpo próprio (ex: rota /admin bloqueando quem não
+    // é admin) é uma negação de PERMISSÃO de um usuário já autenticado,
+    // não deve derrubar a sessão dele.
+    const isPermissionDenied = status === 403 && !!error.response?.data?.message;
+
+    if (status === 401 || (status === 403 && !isPermissionDenied)) {
       await AsyncStorage.multiRemove([TOKEN_STORAGE_KEY, USER_STORAGE_KEY, '@traco:favorites']);
       unauthorizedHandler?.();
     }
@@ -42,4 +52,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

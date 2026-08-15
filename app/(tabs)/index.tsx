@@ -182,7 +182,7 @@ export default function Home() {
           </View>
         </View>
 
-        {/* ── Categorias (círculos estilo Stories sobre o fundo escuro) ── */}
+        {/* ── Categorias (chips retangulares, ícone pequeno + texto) ── */}
         {categories.length > 0 && (
           <FlatList
             horizontal
@@ -191,8 +191,8 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal: 20,
-              gap: 16,
-              paddingBottom: 18,
+              gap: 8,
+              paddingBottom: 16,
             }}
             renderItem={({ item }) => {
               const active = item === 'Todos' ? !category : category === item;
@@ -202,44 +202,38 @@ export default function Home() {
               return (
                 <Pressable
                   onPress={() => setCategory(item === 'Todos' ? null : item)}
-                  style={({ pressed }) => ({ alignItems: 'center', width: 68, opacity: pressed ? 0.75 : 1 })}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    backgroundColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.08)',
+                    borderWidth: 1,
+                    borderColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.18)',
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    opacity: pressed ? 0.75 : 1,
+                    ...(active
+                      ? {
+                          shadowColor: Theme.colors.accent,
+                          shadowOpacity: 0.4,
+                          shadowRadius: 8,
+                          shadowOffset: { width: 0, height: 3 },
+                          elevation: 4,
+                          boxShadow: '0px 3px 8px rgba(212,163,115,0.4)',
+                        }
+                      : {}),
+                  })}
                 >
-                  <View
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.08)',
-                      borderWidth: active ? 2.5 : 1,
-                      borderColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.18)',
-                      ...(active
-                        ? {
-                            shadowColor: Theme.colors.accent,
-                            shadowOpacity: 0.4,
-                            shadowRadius: 8,
-                            shadowOffset: { width: 0, height: 3 },
-                            elevation: 4,
-                            boxShadow: '0px 3px 8px rgba(212,163,115,0.4)',
-                          }
-                        : {}),
-                    }}
-                  >
-                    <Ionicons
-                      name={icon}
-                      size={22}
-                      color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)'}
-                    />
-                  </View>
+                  <Ionicons
+                    name={icon}
+                    size={14}
+                    color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)'}
+                  />
                   <Text
-                    numberOfLines={1}
                     style={{
-                      marginTop: 6,
-                      maxWidth: 68,
-                      textAlign: 'center',
-                      color: active ? Theme.colors.accent : 'rgba(255,255,255,0.65)',
-                      fontSize: 11,
+                      color: active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)',
+                      fontSize: 12,
                       fontWeight: active ? '700' : '500',
                       letterSpacing: 0.1,
                     }}
@@ -291,6 +285,7 @@ export default function Home() {
         <FlatList
           data={filteredEvents}
           keyExtractor={(item) => String(item.id)}
+          style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
           refreshing={loading}
