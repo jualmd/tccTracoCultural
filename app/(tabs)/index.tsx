@@ -61,7 +61,7 @@ export default function Home() {
   } = useEvents();
 
   // Recarrega a lista sempre que a Home ganha foco de novo -- garante que
-  // um evento recém-criado apareça ao voltar da tela de criar evento.
+  // qualquer alteração feita em outra tela (ex: editar evento) reflita aqui.
   useFocusEffect(
     useCallback(() => {
       refresh();
@@ -182,7 +182,7 @@ export default function Home() {
           </View>
         </View>
 
-        {/* ── Categorias (chips glass sobre o fundo escuro) ── */}
+        {/* ── Categorias (círculos estilo Stories sobre o fundo escuro) ── */}
         {categories.length > 0 && (
           <FlatList
             horizontal
@@ -191,8 +191,8 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal: 20,
-              gap: 6,
-              paddingBottom: 16,
+              gap: 16,
+              paddingBottom: 18,
             }}
             renderItem={({ item }) => {
               const active = item === 'Todos' ? !category : category === item;
@@ -202,38 +202,44 @@ export default function Home() {
               return (
                 <Pressable
                   onPress={() => setCategory(item === 'Todos' ? null : item)}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 5,
-                    backgroundColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.08)',
-                    borderWidth: 1,
-                    borderColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.18)',
-                    borderRadius: Theme.radius.pill,
-                    paddingHorizontal: 11,
-                    paddingVertical: 6,
-                    opacity: pressed ? 0.72 : 1,
-                    ...(active
-                      ? {
-                          shadowColor: Theme.colors.accent,
-                          shadowOpacity: 0.4,
-                          shadowRadius: 8,
-                          shadowOffset: { width: 0, height: 3 },
-                          elevation: 4,
-                          boxShadow: '0px 3px 8px rgba(212,163,115,0.4)',
-                        }
-                      : {}),
-                  })}
+                  style={({ pressed }) => ({ alignItems: 'center', width: 68, opacity: pressed ? 0.75 : 1 })}
                 >
-                  <Ionicons
-                    name={icon}
-                    size={12}
-                    color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)'}
-                  />
-                  <Text
+                  <View
                     style={{
-                      color: active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)',
-                      fontSize: 11.5,
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.08)',
+                      borderWidth: active ? 2.5 : 1,
+                      borderColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.18)',
+                      ...(active
+                        ? {
+                            shadowColor: Theme.colors.accent,
+                            shadowOpacity: 0.4,
+                            shadowRadius: 8,
+                            shadowOffset: { width: 0, height: 3 },
+                            elevation: 4,
+                            boxShadow: '0px 3px 8px rgba(212,163,115,0.4)',
+                          }
+                        : {}),
+                    }}
+                  >
+                    <Ionicons
+                      name={icon}
+                      size={22}
+                      color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)'}
+                    />
+                  </View>
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      marginTop: 6,
+                      maxWidth: 68,
+                      textAlign: 'center',
+                      color: active ? Theme.colors.accent : 'rgba(255,255,255,0.65)',
+                      fontSize: 11,
                       fontWeight: active ? '700' : '500',
                       letterSpacing: 0.1,
                     }}

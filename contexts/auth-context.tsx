@@ -69,15 +69,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loadingSession) return;
     const route = segments.join('/');
-    const isAuthRoute =
+    const isPublicRoute =
+      route.includes('welcome') ||
       route.includes('login') ||
       route.includes('cadastrar') ||
       route.includes('verificar-codigo') ||
       route.includes('esqueci-senha') ||
       route.includes('redefinir-senha');
 
-    if (!token && !isAuthRoute) router.replace('/(tabs)/login' as never);
-    if (token && isAuthRoute) router.replace('/(tabs)' as never);
+    if (!token && !isPublicRoute) router.replace('/(tabs)/login' as never);
+    if (token && isPublicRoute) router.replace('/(tabs)' as never);
   }, [loadingSession, router, segments, token]);
 
   const value = useMemo(
@@ -93,4 +94,3 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 }
-

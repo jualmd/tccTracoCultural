@@ -111,9 +111,6 @@ export default function Login() {
             Cadastre-se
           </Text>
         </Text>
-        <Text onPress={() => router.push('/(tabs)/welcome' as never)} style={{ color: '#b3a9a3', fontSize: 12.5 }}>
-          ← Voltar ao início
-        </Text>
       </View>
     </AuthLayout>
   );
