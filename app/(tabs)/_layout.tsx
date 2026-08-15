@@ -59,10 +59,6 @@ export default function TabsLayout() {
         options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
       <Tabs.Screen
-        name="criar-evento"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
         name="index"
         options={{
           title: 'Início',

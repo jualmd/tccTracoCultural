@@ -11,7 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import { EventCard } from '@/components/event-card';
 import { EventDetailModal } from '@/components/event-detail-modal';
 import { EditEventModal } from '@/components/edit-event-modal';
@@ -49,7 +48,6 @@ export default function Home() {
   const [editingEvent, setEditingEvent] = useState<Evento | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useAuth();
-  const router = useRouter();
   const {
     filteredEvents,
     categories,
@@ -345,25 +343,6 @@ export default function Home() {
         onClose={() => setEditingEvent(null)}
         onSaved={() => refresh()}
       />
-
-      {/* ── Criar evento (FAB) ── */}
-      <Pressable
-        onPress={() => router.push('/(tabs)/criar-evento' as never)}
-        style={({ pressed }) => ({
-          position: 'absolute',
-          right: 20,
-          bottom: 24,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
-          alignItems: 'center',
-          justifyContent: 'center',
-          ...Theme.shadow.accent,
-        })}
-      >
-        <Ionicons name="add" size={30} color={Theme.colors.primaryDark} />
-      </Pressable>
     </View>
   );
 }
