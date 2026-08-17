@@ -1,34 +1,34 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { listarEventos } from '@/services/event-service';
 import type { Evento } from '@/types/domain';
 
+// Remove acentos e normaliza caixa — evita que "Educação" vs "educacao"
+// ou "Cultura & Arte" vs "cultura&arte" quebrem a comparação.
+function normalize(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export function useEvents() {
-  const [events, setEvents] = useState<Evento[]>([]);
   const [allEvents, setAllEvents] = useState<Evento[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Busca todos os eventos uma vez para extrair categorias
+  // Busca TODOS os eventos uma única vez (sem filtros no backend).
+  // A filtragem por categoria e por texto acontece aqui no app, então
+  // funciona sempre — mesmo que o backend não trate corretamente os
+  // parâmetros de query.
   const loadAll = useCallback(async () => {
-    try {
-      const data = await listarEventos();
-      setAllEvents(data);
-    } catch {
-      // silencia — categorias podem ficar vazias
-    }
-  }, []);
-
-  const fetchEvents = useCallback(async (q: string, cat: string | null) => {
     setLoading(true);
     setError('');
     try {
-      const filters: Record<string, string> = {};
-      if (q.trim()) filters.q = q.trim();
-      if (cat) filters.categoria = cat;
-      setEvents(await listarEventos(filters as any));
+      const data = await listarEventos();
+      setAllEvents(data);
     } catch {
       setError('Não foi possível carregar os eventos.');
     } finally {
@@ -36,29 +36,43 @@ export function useEvents() {
     }
   }, []);
 
-  // Debounce na busca textual
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => fetchEvents(search, category), 350);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [search, category, fetchEvents]);
-
   useEffect(() => {
     loadAll();
   }, [loadAll]);
 
-  const refresh = useCallback(() => fetchEvents(search, category), [fetchEvents, search, category]);
+  const refresh = useCallback(() => loadAll(), [loadAll]);
 
   const categories = useMemo(
     () => [...new Set(allEvents.map((e) => e.categoria?.nome).filter(Boolean) as string[])],
     [allEvents]
   );
 
+  const filteredEvents = useMemo(() => {
+    const normalizedSearch = normalize(search);
+    const normalizedCategory = category ? normalize(category) : null;
+
+    return allEvents.filter((evento) => {
+      if (normalizedCategory) {
+        const eventoCategoria = evento.categoria?.nome ? normalize(evento.categoria.nome) : '';
+        if (eventoCategoria !== normalizedCategory) return false;
+      }
+
+      if (normalizedSearch) {
+        const haystack = normalize(
+          [evento.nome, evento.descricao ?? '', evento.cidade, evento.categoria?.nome ?? '']
+            .filter(Boolean)
+            .join(' ')
+        );
+        if (!haystack.includes(normalizedSearch)) return false;
+      }
+
+      return true;
+    });
+  }, [allEvents, search, category]);
+
   return {
-    events,
-    filteredEvents: events,
+    events: allEvents,
+    filteredEvents,
     categories,
     search,
     setSearch,
@@ -69,4 +83,3 @@ export function useEvents() {
     refresh,
   };
 }
-

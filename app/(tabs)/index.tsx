@@ -20,27 +20,37 @@ import { useFavorites } from '@/contexts/favorites-context';
 import { useEvents } from '@/hooks/use-events';
 import type { Evento } from '@/types/domain';
 
-// Mapeamento de categoria → ícone Ionicons
+// Remove acentos e normaliza caixa, pra bater "Educação", "educação" ou
+// "EDUCAÇÃO" com a mesma entrada do mapa de ícones.
+function normalizeCategoryName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+// Mapeamento de categoria → ícone Ionicons (chaves já normalizadas)
 const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'Social': 'people-outline',
-  'Música': 'musical-notes-outline',
-  'Cultura & Arte': 'color-palette-outline',
-  'Profissional': 'briefcase-outline',
-  'Educação': 'school-outline',
-  'Tecnologia': 'hardware-chip-outline',
-  'Bem-Estar': 'leaf-outline',
-  'Esporte': 'football-outline',
-  'Gastronomia': 'restaurant-outline',
-  'Comércio': 'storefront-outline',
-  'Kids': 'happy-outline',
-  'Religioso': 'star-outline',
-  'Comunidade': 'heart-circle-outline',
-  'Geek': 'game-controller-outline',
-  'Viagem': 'airplane-outline',
+  'social': 'people-outline',
+  'musica': 'musical-notes-outline',
+  'cultura & arte': 'color-palette-outline',
+  'profissional': 'briefcase-outline',
+  'educacao': 'school-outline',
+  'tecnologia': 'hardware-chip-outline',
+  'bem-estar': 'leaf-outline',
+  'esporte': 'football-outline',
+  'gastronomia': 'restaurant-outline',
+  'comercio': 'storefront-outline',
+  'kids': 'happy-outline',
+  'religioso': 'star-outline',
+  'comunidade': 'heart-circle-outline',
+  'geek': 'game-controller-outline',
+  'viagem': 'airplane-outline',
 };
 
 function getCategoryIcon(name: string): keyof typeof Ionicons.glyphMap {
-  return CATEGORY_ICONS[name] ?? 'grid-outline';
+  return CATEGORY_ICONS[normalizeCategoryName(name)] ?? 'grid-outline';
 }
 
 export default function Home() {
@@ -182,7 +192,7 @@ export default function Home() {
           </View>
         </View>
 
-        {/* ── Categorias (chips retangulares, ícone pequeno + texto) ── */}
+        {/* ── Categorias (chips uniformes: mesma altura, largura mínima, 1 linha) ── */}
         {categories.length > 0 && (
           <FlatList
             horizontal
@@ -205,13 +215,15 @@ export default function Home() {
                   style={({ pressed }) => ({
                     flexDirection: 'row',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: 6,
+                    height: 38,
+                    minWidth: 72,
                     backgroundColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.08)',
                     borderWidth: 1,
                     borderColor: active ? Theme.colors.accent : 'rgba(255,255,255,0.18)',
-                    borderRadius: 12,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+                    borderRadius: 19,
+                    paddingHorizontal: 14,
                     opacity: pressed ? 0.75 : 1,
                     ...(active
                       ? {
@@ -227,14 +239,16 @@ export default function Home() {
                 >
                   <Ionicons
                     name={icon}
-                    size={14}
+                    size={15}
                     color={active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)'}
+                    style={{ flexShrink: 0 }}
                   />
                   <Text
+                    numberOfLines={1}
                     style={{
                       color: active ? Theme.colors.primaryDark : 'rgba(255,255,255,0.72)',
-                      fontSize: 12,
-                      fontWeight: active ? '700' : '500',
+                      fontSize: 12.5,
+                      fontWeight: active ? '700' : '600',
                       letterSpacing: 0.1,
                     }}
                   >
