@@ -18,17 +18,9 @@ import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
 import { useEvents } from '@/hooks/use-events';
+import { useNearbyEvents } from '@/hooks/use-nearby-events';
+import { normalizeText as normalizeCategoryName } from '@/lib/text';
 import type { Evento } from '@/types/domain';
-
-// Remove acentos e normaliza caixa, pra bater "Educação", "educação" ou
-// "EDUCAÇÃO" com a mesma entrada do mapa de ícones.
-function normalizeCategoryName(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
 
 // Mapeamento de categoria → ícone Ionicons (chaves já normalizadas)
 const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -59,6 +51,7 @@ export default function Home() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useAuth();
   const {
+    events,
     filteredEvents,
     categories,
     search,
@@ -69,6 +62,8 @@ export default function Home() {
     error,
     refresh,
   } = useEvents();
+
+  const { city: nearbyCity, nearbyEvents } = useNearbyEvents(events);
 
   // Recarrega a lista sempre que a Home ganha foco de novo -- garante que
   // qualquer alteração feita em outra tela (ex: editar evento) reflita aqui.
@@ -199,6 +194,10 @@ export default function Home() {
             data={['Todos', ...categories]}
             keyExtractor={(item) => item}
             showsHorizontalScrollIndicator={false}
+            // flexGrow/flexShrink: 0 impede que este FlatList horizontal
+            // estique verticalmente e "engula" o espaço da lista de baixo
+            // (era a causa do buraco entre os chips e "Todos os eventos").
+            style={{ flexGrow: 0, flexShrink: 0 }}
             contentContainerStyle={{
               paddingHorizontal: 20,
               gap: 8,
@@ -258,6 +257,51 @@ export default function Home() {
               );
             }}
           />
+        )}
+
+        {/* ── Eventos perto de você (mesma cidade, scroll horizontal) ── */}
+        {nearbyCity && nearbyEvents.length > 0 && (
+          <View style={{ marginBottom: 22 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                paddingHorizontal: 20,
+                marginBottom: 10,
+              }}
+            >
+              <Ionicons name="location-outline" size={15} color={Theme.colors.accent} />
+              <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>
+                Eventos perto de você
+              </Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '500' }}>
+                · {nearbyCity}
+              </Text>
+            </View>
+
+            <FlatList
+              horizontal
+              data={nearbyEvents}
+              keyExtractor={(item) => `nearby-${item.id}`}
+              showsHorizontalScrollIndicator={false}
+              style={{ flexGrow: 0, flexShrink: 0 }}
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+              renderItem={({ item }) => (
+                <View style={{ width: 210 }}>
+                  <EventCard
+                    event={item}
+                    variant="dark"
+                    onPress={() => setSelectedEvent(item)}
+                    onFavorite={() => toggleFavorite(item.id)}
+                    isFavorited={isFavorite(item.id)}
+                    isOwner={!!user?.id && item.usuario?.id === user.id}
+                    onEdit={() => setEditingEvent(item)}
+                  />
+                </View>
+              )}
+            />
+          </View>
         )}
 
         {/* ── Cabeçalho de resultados ── */}
@@ -357,6 +401,10 @@ export default function Home() {
         visible={!!editingEvent}
         onClose={() => setEditingEvent(null)}
         onSaved={() => refresh()}
+        onDeleted={() => {
+          setSelectedEvent(null);
+          refresh();
+        }}
       />
     </View>
   );

@@ -42,3 +42,6 @@ export async function atualizarEvento(id: number, payload: EventUpdatePayload) {
   return data;
 }
 
+export async function excluirEvento(id: number) {
+  await apiClient.delete(`/eventos/${id}`);
+}

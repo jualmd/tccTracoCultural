@@ -188,6 +188,10 @@ export default function Favorites() {
         visible={!!editingEvent}
         onClose={() => setEditingEvent(null)}
         onSaved={() => refreshFavorites()}
+        onDeleted={() => {
+          setSelectedEvent(null);
+          refreshFavorites();
+        }}
       />
     </View>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -11,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
-import { atualizarEvento } from '@/services/event-service';
+import { atualizarEvento, excluirEvento } from '@/services/event-service';
 import type { Evento } from '@/types/domain';
 
 type Props = {
@@ -19,6 +20,8 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onSaved: (evento: Evento) => void;
+  /** Chamado após excluir com sucesso — o chamador deve recarregar a lista. */
+  onDeleted?: (id: number) => void;
 };
 
 type FormState = {
@@ -84,7 +87,7 @@ function Field({
   );
 }
 
-export function EditEventModal({ event, visible, onClose, onSaved }: Props) {
+export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: Props) {
   const [form, setForm] = useState<FormState>({
     nome: '',
     descricao: '',
@@ -94,6 +97,7 @@ export function EditEventModal({ event, visible, onClose, onSaved }: Props) {
     linkExterno: '',
   });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -108,6 +112,34 @@ export function EditEventModal({ event, visible, onClose, onSaved }: Props) {
     });
     setError('');
   }, [event]);
+
+  const handleDelete = () => {
+    if (!event) return;
+    Alert.alert(
+      'Excluir evento',
+      `Tem certeza que deseja excluir "${event.nome}"? Essa ação não pode ser desfeita.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            setError('');
+            try {
+              await excluirEvento(event.id);
+              onDeleted?.(event.id);
+              onClose();
+            } catch {
+              setError('Não foi possível excluir o evento. Tente novamente.');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleSave = async () => {
     if (!event) return;
@@ -251,6 +283,31 @@ export function EditEventModal({ event, visible, onClose, onSaved }: Props) {
                   </Text>
                 </Pressable>
               </View>
+
+              <Pressable
+                onPress={handleDelete}
+                disabled={saving || deleting}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 8,
+                  paddingVertical: 13,
+                  borderRadius: Theme.radius.pill,
+                  marginTop: 10,
+                  backgroundColor: 'rgba(239,68,68,0.1)',
+                  opacity: pressed ? 0.75 : deleting ? 0.6 : 1,
+                })}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color={Theme.colors.danger} />
+                ) : (
+                  <Ionicons name="trash-outline" size={16} color={Theme.colors.danger} />
+                )}
+                <Text style={{ color: Theme.colors.danger, fontWeight: '700', fontSize: 14 }}>
+                  {deleting ? 'Excluindo...' : 'Excluir evento'}
+                </Text>
+              </Pressable>
             </ScrollView>
           </SafeAreaView>
         </View>

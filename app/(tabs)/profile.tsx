@@ -358,6 +358,7 @@ export default function Profile() {
         visible={!!editingEvent}
         onClose={() => setEditingEvent(null)}
         onSaved={() => loadMyEvents()}
+        onDeleted={() => loadMyEvents()}
       />
     </View>
   );

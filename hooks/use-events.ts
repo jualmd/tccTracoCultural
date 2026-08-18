@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { listarEventos } from '@/services/event-service';
+import { normalizeText as normalize } from '@/lib/text';
 import type { Evento } from '@/types/domain';
-
-// Remove acentos e normaliza caixa — evita que "Educação" vs "educacao"
-// ou "Cultura & Arte" vs "cultura&arte" quebrem a comparação.
-function normalize(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
 
 export function useEvents() {
   const [allEvents, setAllEvents] = useState<Evento[]>([]);
