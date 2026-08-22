@@ -59,12 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
+      // Só limpa o estado aqui — o useEffect abaixo (que observa token/segments)
+      // é quem cuida do redirect de fato. Chamar router.replace() direto aqui
+      // dispara cedo demais (fora do ciclo do React Navigation) e gera o aviso
+      // "REPLACE was not handled by any navigator".
       setUser(null);
       setToken(null);
-      router.replace('/(tabs)/login' as never);
     });
     return () => setUnauthorizedHandler(null);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (loadingSession) return;
