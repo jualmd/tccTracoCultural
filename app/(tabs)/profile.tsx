@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { DeleteAccountModal } from '@/components/delete-account-modal';
 import { EditEventModal } from '@/components/edit-event-modal';
+import { EventDetailModal } from '@/components/event-detail-modal';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
@@ -97,16 +98,18 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-function EventMiniCard({ evento, onEdit }: { evento: Evento; onEdit: () => void }) {
+function EventMiniCard({ evento, onPress, onEdit }: { evento: Evento; onPress: () => void; onEdit: () => void }) {
   const imagem = evento.cardImage ? `data:image/jpeg;base64,${evento.cardImage}` : null;
   return (
-    <View
-      style={{
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
         gap: 12,
-      }}
+        opacity: pressed ? 0.8 : 1,
+      })}
     >
       {imagem ? (
         <Image source={{ uri: imagem }} style={{ width: 52, height: 52, borderRadius: Theme.radius.sm }} />
@@ -133,7 +136,10 @@ function EventMiniCard({ evento, onEdit }: { evento: Evento; onEdit: () => void 
         </Text>
       </View>
       <Pressable
-        onPress={onEdit}
+        onPress={(e) => {
+          e.stopPropagation?.();
+          onEdit();
+        }}
         hitSlop={10}
         style={({ pressed }) => ({
           width: 34,
@@ -147,7 +153,7 @@ function EventMiniCard({ evento, onEdit }: { evento: Evento; onEdit: () => void 
       >
         <Ionicons name="pencil" size={15} color={Theme.colors.accent} />
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 
@@ -155,7 +161,8 @@ export default function Profile() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [myEvents, setMyEvents] = useState<Evento[]>([]);
   const [editingEvent, setEditingEvent] = useState<Evento | null>(null);
-  const { count: favCount } = useFavorites();
+  const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
+  const { isFavorite, toggleFavorite, count: favCount } = useFavorites();
   const { user, setUser, logout } = useAuth();
   const router = useRouter();
 
@@ -283,7 +290,11 @@ export default function Profile() {
             <Card>
               {myEvents.map((evento, index) => (
                 <View key={evento.id}>
-                  <EventMiniCard evento={evento} onEdit={() => setEditingEvent(evento)} />
+                  <EventMiniCard
+                    evento={evento}
+                    onPress={() => setSelectedEvent(evento)}
+                    onEdit={() => setEditingEvent(evento)}
+                  />
                   {index < myEvents.length - 1 && (
                     <View style={{ height: 1, marginHorizontal: 12, backgroundColor: Theme.glass.border }} />
                   )}
@@ -351,6 +362,14 @@ export default function Profile() {
       <DeleteAccountModal
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
+      />
+
+      <EventDetailModal
+        event={selectedEvent}
+        visible={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onFavorite={() => selectedEvent && toggleFavorite(selectedEvent.id)}
+        isFavorited={!!selectedEvent && isFavorite(selectedEvent.id)}
       />
 
       <EditEventModal

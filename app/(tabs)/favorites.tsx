@@ -168,7 +168,7 @@ export default function Favorites() {
               onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
-              isOwner={!!user?.id && item.usuario?.id === user.id}
+              isOwner={!!user?.id && item.idUsuarioFk === user.id}
               onEdit={() => setEditingEvent(item)}
             />
           )}

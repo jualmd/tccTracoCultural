@@ -14,6 +14,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { EventCard } from '@/components/event-card';
 import { EventDetailModal } from '@/components/event-detail-modal';
 import { EditEventModal } from '@/components/edit-event-modal';
+import { NotificationsModal } from '@/components/notifications-modal';
+import { useNotifications } from '@/hooks/use-notifications';
+import { getEventoPorId } from '@/services/event-service';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
@@ -48,6 +51,8 @@ function getCategoryIcon(name: string): keyof typeof Ionicons.glyphMap {
 export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState<Evento | null>(null);
   const [editingEvent, setEditingEvent] = useState<Evento | null>(null);
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const { naoLidas, notificacoes, carregando: carregandoNotifs, carregarLista, lerNotificacao, lerTodas } = useNotifications();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useAuth();
   const {
@@ -133,23 +138,71 @@ export default function Home() {
             <Text style={{ color: Theme.colors.accent }}>acontece perto de você</Text>
           </Text>
 
-          {/* Avatar no canto */}
+          {/* Avatar + sininho no canto */}
           <View
             style={{
               position: 'absolute',
               top: 14,
               right: 20,
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: Theme.colors.accent,
-              justifyContent: 'center',
+              flexDirection: 'row',
               alignItems: 'center',
+              gap: 10,
             }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '800', color: Theme.colors.primaryDark }}>
-              {user?.nome?.charAt(0).toUpperCase() ?? '?'}
-            </Text>
+            <Pressable
+              onPress={() => setNotificationsVisible(true)}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Ionicons name="notifications" size={17} color="#fff" />
+              {naoLidas > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    paddingHorizontal: 3,
+                    backgroundColor: Theme.colors.danger,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1.5,
+                    borderColor: Theme.colors.primaryDark,
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 9, fontWeight: '800' }}>
+                    {naoLidas > 9 ? '9+' : naoLidas}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: Theme.colors.accent,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '800', color: Theme.colors.primaryDark }}>
+                {user?.nome?.charAt(0).toUpperCase() ?? '?'}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -295,7 +348,7 @@ export default function Home() {
                     onPress={() => setSelectedEvent(item)}
                     onFavorite={() => toggleFavorite(item.id)}
                     isFavorited={isFavorite(item.id)}
-                    isOwner={!!user?.id && item.usuario?.id === user.id}
+                    isOwner={!!user?.id && item.idUsuarioFk === user.id}
                     onEdit={() => setEditingEvent(item)}
                   />
                 </View>
@@ -381,7 +434,7 @@ export default function Home() {
               onPress={() => setSelectedEvent(item)}
               onFavorite={() => toggleFavorite(item.id)}
               isFavorited={isFavorite(item.id)}
-              isOwner={!!user?.id && item.usuario?.id === user.id}
+              isOwner={!!user?.id && item.idUsuarioFk === user.id}
               onEdit={() => setEditingEvent(item)}
             />
           )}
@@ -404,6 +457,27 @@ export default function Home() {
         onDeleted={() => {
           setSelectedEvent(null);
           refresh();
+        }}
+      />
+
+      <NotificationsModal
+        visible={notificationsVisible}
+        onClose={() => setNotificationsVisible(false)}
+        notificacoes={notificacoes}
+        carregando={carregandoNotifs}
+        onAbrir={carregarLista}
+        onLerTodas={lerTodas}
+        onPressNotificacao={async (n) => {
+          await lerNotificacao(n.id);
+          setNotificationsVisible(false);
+          if (n.idEventoFk) {
+            try {
+              const evento = await getEventoPorId(n.idEventoFk);
+              setSelectedEvent(evento);
+            } catch {
+              // evento pode ter sido excluído nesse meio tempo — ignora silenciosamente
+            }
+          }
         }}
       />
     </View>

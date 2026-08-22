@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
 import { criarComentario, excluirComentario, listarComentarios } from '@/services/comment-service';
 import { getEventoPorId } from '@/services/event-service';
+import { shareEvento } from '@/lib/share';
 import type { Comentario, Evento } from '@/types/domain';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -176,23 +177,39 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                   <Ionicons name="arrow-back" size={18} color="#fff" />
                 </Pressable>
 
-                <Pressable
-                  onPress={onFavorite}
-                  style={({ pressed }) => ({
-                    backgroundColor: pressed ? 'rgba(15,5,4,0.65)' : 'rgba(15,5,4,0.42)',
-                    borderRadius: 18,
-                    padding: 8,
-                    borderWidth: 1,
-                    borderColor: Theme.glass.border,
-                    transform: [{ scale: pressed ? 0.88 : 1 }],
-                  })}
-                >
-                  <Ionicons
-                    name={isFavorited ? 'heart' : 'heart-outline'}
-                    size={18}
-                    color={isFavorited ? '#ff6b6b' : '#fff'}
-                  />
-                </Pressable>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <Pressable
+                    onPress={() => shareEvento(selectedEvent, !!user)}
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed ? 'rgba(15,5,4,0.65)' : 'rgba(15,5,4,0.42)',
+                      borderRadius: 18,
+                      padding: 8,
+                      borderWidth: 1,
+                      borderColor: Theme.glass.border,
+                      transform: [{ scale: pressed ? 0.88 : 1 }],
+                    })}
+                  >
+                    <Ionicons name="share-social-outline" size={18} color="#fff" />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={onFavorite}
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed ? 'rgba(15,5,4,0.65)' : 'rgba(15,5,4,0.42)',
+                      borderRadius: 18,
+                      padding: 8,
+                      borderWidth: 1,
+                      borderColor: Theme.glass.border,
+                      transform: [{ scale: pressed ? 0.88 : 1 }],
+                    })}
+                  >
+                    <Ionicons
+                      name={isFavorited ? 'heart' : 'heart-outline'}
+                      size={18}
+                      color={isFavorited ? '#ff6b6b' : '#fff'}
+                    />
+                  </Pressable>
+                </View>
               </View>
 
               {/* Badge categoria sobre a imagem */}
@@ -386,8 +403,8 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                   </Text>
                 ) : (
                   sortedComments.map((comment) => {
-                    const canDelete = user?.id && comment.usuario?.id === user.id;
-                    const authorName = comment.usuario?.nome ?? 'Usuário';
+                    const canDelete = !!user?.id && comment.idUsuarioFk === user.id;
+                    const authorName = comment.nomeUsuario ?? 'Usuário';
                     return (
                       <View
                         key={comment.id}

@@ -24,15 +24,23 @@ export type Evento = {
   linkExterno?: string | null;
   cardImage?: string | null;
   categoria?: Categoria | null;
-  usuario?: Pick<Usuario, 'id' | 'nome'> | null;
+  // O backend nunca manda um objeto "usuario" aninhado — só o id direto
+  // (bug histórico: o app comparava event.usuario?.id, que é sempre
+  // undefined, então "é meu evento?" nunca dava certo).
+  idUsuarioFk?: number | null;
+  destacado?: boolean;
+  patrocinado?: boolean;
 };
 
 export type Comentario = {
   id: number;
   texto: string;
   dataCriacao?: string;
-  usuario?: Pick<Usuario, 'id' | 'nome' | 'email'> | null;
-  evento?: Pick<Evento, 'id' | 'nome'> | null;
+  // mesma história do Evento: o backend manda os campos flat, não um
+  // objeto "usuario" aninhado.
+  idUsuarioFk?: number | null;
+  idEventoFk?: number | null;
+  nomeUsuario?: string | null;
 };
 
 export type AuthPayload = {

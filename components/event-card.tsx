@@ -1,6 +1,8 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
+import { shareEvento } from '@/lib/share';
+import { useAuth } from '@/contexts/auth-context';
 import type { Evento } from '@/types/domain';
 
 type Props = {
@@ -33,6 +35,7 @@ function getImageSource(event: Evento) {
 export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = false, onEdit, variant = 'light' }: Props) {
   const category = event.categoria?.nome ?? 'Cultura';
   const dark = variant === 'dark';
+  const { user } = useAuth();
 
   return (
     <Pressable
@@ -101,6 +104,21 @@ export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = f
               <Ionicons name="pencil" size={15} color="#fff" />
             </Pressable>
           )}
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation?.();
+              shareEvento(event, !!user);
+            }}
+            hitSlop={10}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? 'rgba(30,20,18,0.75)' : 'rgba(30,20,18,0.55)',
+              borderRadius: 18,
+              padding: 6,
+              transform: [{ scale: pressed ? 0.88 : 1 }],
+            })}
+          >
+            <Ionicons name="share-social-outline" size={15} color="#fff" />
+          </Pressable>
           <Pressable
             onPress={(e) => {
               e.stopPropagation?.();
