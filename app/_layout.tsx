@@ -13,6 +13,7 @@ export default function RootLayout() {
     <AuthProvider>
       <FavoritesProvider>
         <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
           <Stack.Screen name="(tabs)" />
         </Stack>
         <StatusBar style="light" />
