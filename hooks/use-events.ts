@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { listarEventos } from '@/services/event-service';
+import { listarCategorias } from '@/services/category-service';
 import { normalizeText as normalize } from '@/lib/text';
 import type { Evento } from '@/types/domain';
 
 export function useEvents() {
   const [allEvents, setAllEvents] = useState<Evento[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,8 +20,15 @@ export function useEvents() {
     setLoading(true);
     setError('');
     try {
-      const data = await listarEventos();
-      setAllEvents(data);
+      const [eventos, categorias] = await Promise.all([
+        listarEventos(),
+        listarCategorias(),
+      ]);
+      setAllEvents(eventos);
+      // Lista de categorias vem do backend (igual ao web), não só das que
+      // já têm evento cadastrado -- assim os chips não "somem" quando a
+      // base de eventos ainda é pequena.
+      setAllCategories(categorias.map((c) => c.nome));
     } catch {
       setError('Não foi possível carregar os eventos.');
     } finally {
@@ -33,10 +42,12 @@ export function useEvents() {
 
   const refresh = useCallback(() => loadAll(), [loadAll]);
 
-  const categories = useMemo(
-    () => [...new Set(allEvents.map((e) => e.categoria?.nome).filter(Boolean) as string[])],
-    [allEvents]
-  );
+  const categories = useMemo(() => {
+    if (allCategories.length > 0) return allCategories;
+    // Fallback defensivo: se o endpoint de categorias falhar por algum
+    // motivo, ainda derivamos da lista de eventos pra não ficar sem chips.
+    return [...new Set(allEvents.map((e) => e.categoria?.nome).filter(Boolean) as string[])];
+  }, [allCategories, allEvents]);
 
   const filteredEvents = useMemo(() => {
     const normalizedSearch = normalize(search);
