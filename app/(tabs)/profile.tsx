@@ -330,6 +330,19 @@ export default function Profile() {
             />
           </Card>
 
+          {user?.isAdm && (
+            <>
+              <SectionLabel>Administração</SectionLabel>
+              <Card>
+                <SectionButton
+                  icon="megaphone-outline"
+                  label="Enviar Notificação"
+                  onPress={() => router.push('/(tabs)/admin-notificacoes' as never)}
+                />
+              </Card>
+            </>
+          )}
+
           <SectionLabel>Zona de Perigo</SectionLabel>
           <Card>
             <SectionButton

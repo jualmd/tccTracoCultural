@@ -12,6 +12,7 @@ export type Usuario = {
   corFundo?: string;
   token?: string;
   createdAt?: string;
+  isAdm?: boolean;
 };
 
 export type Evento = {
@@ -60,4 +61,3 @@ export type RegisterRequest = {
 };
 
 export type UpdateUserRequest = Partial<Pick<Usuario, 'nome' | 'email' | 'estado' | 'icone' | 'corFundo'>>;
-

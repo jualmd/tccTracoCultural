@@ -4,10 +4,6 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { FavoritesProvider } from '@/contexts/favorites-context';
 import '../global.css';
 
-export const unstable_settings = {
-  initialRouteName: '(tabs)',
-};
-
 export default function RootLayout() {
   return (
     <AuthProvider>

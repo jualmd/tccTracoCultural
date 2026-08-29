@@ -5,7 +5,7 @@ export type Notificacao = {
   idUsuarioFk: number;
   idEventoFk: number | null;
   mensagem: string;
-  tipo: 'COMENTARIO' | 'EVENTO_PROXIMO' | string;
+  tipo: 'COMENTARIO' | 'EVENTO_PROXIMO' | 'ADMIN' | string;
   lida: boolean;
   dataCriacao: string;
 };
@@ -26,4 +26,15 @@ export async function marcarComoLida(id: number) {
 
 export async function marcarTodasComoLidas() {
   await apiClient.patch('/notificacoes/lidas');
+}
+
+export type EnviarNotificacaoAdminPayload = {
+  mensagem: string;
+  destino: 'TODOS' | 'FAVORITOS_EVENTO';
+  eventoId?: number;
+};
+
+export async function enviarNotificacaoAdmin(payload: EnviarNotificacaoAdminPayload) {
+  const { data } = await apiClient.post<{ totalEnviado: number }>('/admin/notificacoes', payload);
+  return data;
 }

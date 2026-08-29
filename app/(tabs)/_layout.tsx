@@ -102,6 +102,10 @@ export default function TabsLayout() {
         name="edit-profile"
         options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
+      <Tabs.Screen
+        name="admin-notificacoes"
+        options={{ href: null, tabBarStyle: { display: 'none' } }}
+      />
     </Tabs>
   );
 }
