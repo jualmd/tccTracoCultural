@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
 import { atualizarEvento, excluirEvento } from '@/services/event-service';
+import { notificarFavoritosEvento } from '@/services/notification-service';
 import type { Evento } from '@/types/domain';
 
 type Props = {
@@ -100,6 +101,9 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
+  const [mensagemAviso, setMensagemAviso] = useState('');
+  const [enviandoAviso, setEnviandoAviso] = useState(false);
+
   useEffect(() => {
     if (!event) return;
     setForm({
@@ -111,6 +115,7 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
       linkExterno: event.linkExterno ?? '',
     });
     setError('');
+    setMensagemAviso('');
   }, [event]);
 
   const handleDelete = () => {
@@ -168,6 +173,27 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
       setError('Não foi possível salvar as alterações. Tente novamente.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEnviarAviso = async () => {
+    if (!event) return;
+    if (!mensagemAviso.trim()) {
+      Alert.alert('Ops', 'Escreva uma mensagem antes de enviar.');
+      return;
+    }
+    setEnviandoAviso(true);
+    try {
+      const resultado = await notificarFavoritosEvento(event.id, mensagemAviso.trim());
+      Alert.alert(
+        'Enviado!',
+        `Aviso enviado para ${resultado.totalEnviado} ${resultado.totalEnviado === 1 ? 'pessoa que favoritou' : 'pessoas que favoritaram'} esse evento.`
+      );
+      setMensagemAviso('');
+    } catch (error: any) {
+      Alert.alert('Erro', error.response?.data?.message ?? 'Não foi possível enviar o aviso. Tente novamente.');
+    } finally {
+      setEnviandoAviso(false);
     }
   };
 
@@ -284,6 +310,62 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
                 </Pressable>
               </View>
 
+              <View
+                style={{
+                  marginTop: 20,
+                  paddingTop: 18,
+                  borderTopWidth: 1,
+                  borderTopColor: Theme.light.border,
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '800', color: Theme.light.text, marginBottom: 4 }}>
+                  Notificar quem favoritou
+                </Text>
+                <Text style={{ fontSize: 12.5, color: Theme.light.textMuted, marginBottom: 12, lineHeight: 18 }}>
+                  Avisa só quem já favoritou este evento -- útil se algo mudou (data, local, etc).
+                </Text>
+                <TextInput
+                  value={mensagemAviso}
+                  onChangeText={setMensagemAviso}
+                  placeholder="Ex: Mudamos o local do evento, confira os detalhes atualizados!"
+                  placeholderTextColor="#b0a09e"
+                  multiline
+                  style={{
+                    backgroundColor: Theme.light.surfaceAlt,
+                    borderWidth: 1,
+                    borderColor: Theme.light.border,
+                    borderRadius: Theme.radius.sm,
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    fontSize: 14,
+                    color: Theme.light.text,
+                    minHeight: 70,
+                    textAlignVertical: 'top',
+                    marginBottom: 12,
+                  }}
+                />
+                <Pressable
+                  onPress={handleEnviarAviso}
+                  disabled={enviandoAviso}
+                  style={({ pressed }) => ({
+                    paddingVertical: 13,
+                    borderRadius: Theme.radius.pill,
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    gap: 8,
+                    backgroundColor: Theme.colors.accent,
+                    opacity: pressed || enviandoAviso ? 0.8 : 1,
+                  })}
+                >
+                  {enviandoAviso && <ActivityIndicator size="small" color={Theme.colors.primaryDark} />}
+                  <Ionicons name="megaphone-outline" size={16} color={Theme.colors.primaryDark} />
+                  <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700' }}>
+                    {enviandoAviso ? 'Enviando...' : 'Enviar aviso'}
+                  </Text>
+                </Pressable>
+              </View>
+
               <Pressable
                 onPress={handleDelete}
                 disabled={saving || deleting}
@@ -294,7 +376,7 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
                   gap: 8,
                   paddingVertical: 13,
                   borderRadius: Theme.radius.pill,
-                  marginTop: 10,
+                  marginTop: 20,
                   backgroundColor: 'rgba(239,68,68,0.1)',
                   opacity: pressed ? 0.75 : deleting ? 0.6 : 1,
                 })}

@@ -40,9 +40,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       AsyncStorage.getItem(USER_STORAGE_KEY),
       AsyncStorage.getItem(TOKEN_STORAGE_KEY),
     ]);
-    setUser(rawUser ? JSON.parse(rawUser) : null);
-    setToken(storedToken);
-  }, []);
+
+    if (!rawUser) {
+      setUser(null);
+      setToken(storedToken);
+      return;
+    }
+
+    try {
+      setUser(JSON.parse(rawUser));
+      setToken(storedToken);
+    } catch {
+      // Dado salvo corrompido -- em vez de travar o app pra sempre nessa
+      // tela (a promise rejeitada não seria pega por ninguém, já que isso
+      // roda automaticamente na abertura do app), trata como sessão
+      // inválida e limpa, deixando a pessoa cair na tela de login normal.
+      await clearSession();
+    }
+  }, [clearSession]);
 
   const login = useCallback(async (data: AuthPayload) => {
     await AsyncStorage.multiSet([

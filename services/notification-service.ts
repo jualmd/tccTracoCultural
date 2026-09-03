@@ -5,7 +5,7 @@ export type Notificacao = {
   idUsuarioFk: number;
   idEventoFk: number | null;
   mensagem: string;
-  tipo: 'COMENTARIO' | 'EVENTO_PROXIMO' | 'ADMIN' | string;
+  tipo: 'COMENTARIO' | 'EVENTO_PROXIMO' | 'GERAL' | 'EVENTO_ATUALIZACAO' | string;
   lida: boolean;
   dataCriacao: string;
 };
@@ -28,13 +28,17 @@ export async function marcarTodasComoLidas() {
   await apiClient.patch('/notificacoes/lidas');
 }
 
-export type EnviarNotificacaoAdminPayload = {
-  mensagem: string;
-  destino: 'TODOS' | 'FAVORITOS_EVENTO';
-  eventoId?: number;
-};
+// Admin -> todo mundo, sobre o sistema.
+export async function enviarNotificacaoGeral(mensagem: string) {
+  const { data } = await apiClient.post<{ totalEnviado: number }>('/admin/notificacoes', { mensagem });
+  return data;
+}
 
-export async function enviarNotificacaoAdmin(payload: EnviarNotificacaoAdminPayload) {
-  const { data } = await apiClient.post<{ totalEnviado: number }>('/admin/notificacoes', payload);
+// Dono do evento -> só quem favoritou ESSE evento.
+export async function notificarFavoritosEvento(eventoId: number, mensagem: string) {
+  const { data } = await apiClient.post<{ totalEnviado: number }>(
+    `/eventos/${eventoId}/notificar-favoritos`,
+    { mensagem }
+  );
   return data;
 }

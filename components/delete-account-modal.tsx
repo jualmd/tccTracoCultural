@@ -1,4 +1,4 @@
-import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
@@ -20,6 +20,9 @@ export function DeleteAccountModal({ visible, onClose }: Props) {
     try {
       await excluirUsuario(user.id);
       await logout();
+    } catch (error: any) {
+      const message = error.response?.data?.message ?? 'Não foi possível excluir sua conta agora. Tente novamente em instantes.';
+      Alert.alert('Erro ao excluir conta', message);
     } finally {
       setLoading(false);
     }
