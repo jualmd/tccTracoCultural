@@ -15,10 +15,21 @@ type Props = {
   onLerTodas: () => void;
 };
 
+// Espelha ICONES_TIPO/CORES_TIPO do NotificacaoBell.jsx (front web).
 const ICONES_TIPO: Record<string, keyof typeof Ionicons.glyphMap> = {
   COMENTARIO: 'chatbubble-ellipses',
   EVENTO_PROXIMO: 'alarm',
+  EVENTO_ATUALIZACAO: 'repeat',
+  GERAL: 'megaphone',
 };
+
+const CORES_TIPO: Record<string, { bg: string; fg: string }> = {
+  COMENTARIO: { bg: 'rgba(212,163,115,0.18)', fg: '#B8864E' },
+  EVENTO_PROXIMO: { bg: 'rgba(179,65,58,0.14)', fg: '#b3413a' },
+  EVENTO_ATUALIZACAO: { bg: 'rgba(142,94,86,0.16)', fg: '#8E5E56' },
+  GERAL: { bg: 'rgba(60,35,33,0.12)', fg: '#3C2321' },
+};
+const CORES_PADRAO = { bg: 'rgba(212,163,115,0.18)', fg: Theme.colors.accent };
 
 function formatarDataRelativa(dataStr: string) {
   const agora = new Date();
@@ -112,7 +123,9 @@ export function NotificationsModal({
                 data={notificacoes}
                 keyExtractor={(item) => String(item.id)}
                 contentContainerStyle={{ paddingBottom: 16 }}
-                renderItem={({ item }) => (
+                renderItem={({ item }) => {
+                  const cor = CORES_TIPO[item.tipo] ?? CORES_PADRAO;
+                  return (
                   <Pressable
                     onPress={() => onPressNotificacao(item)}
                     style={({ pressed }) => ({
@@ -133,15 +146,15 @@ export function NotificationsModal({
                         width: 32,
                         height: 32,
                         borderRadius: 16,
-                        backgroundColor: 'rgba(212,163,115,0.18)',
+                        backgroundColor: cor.bg,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
                       <Ionicons
-                        name={ICONES_TIPO[item.tipo] ?? 'information-circle'}
+                        name={ICONES_TIPO[item.tipo] ?? 'notifications'}
                         size={15}
-                        color={Theme.colors.accent}
+                        color={cor.fg}
                       />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -164,7 +177,8 @@ export function NotificationsModal({
                       />
                     )}
                   </Pressable>
-                )}
+                  );
+                }}
               />
             )}
           </SafeAreaView>

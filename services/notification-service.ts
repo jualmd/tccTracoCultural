@@ -10,6 +10,21 @@ export type Notificacao = {
   dataCriacao: string;
 };
 
+// Um envio em lote (histórico persistido, editável/excluível) — o mesmo
+// registro que gera N `Notificacao` (uma por destinatário). Usado tanto
+// pela tela de admin (envios gerais) quanto pelo dono de um evento
+// (avisos pra quem favoritou).
+export type EnvioNotificacao = {
+  id: number;
+  tipo: string;
+  mensagem: string;
+  idEventoFk: number | null;
+  nomeEvento: string | null;
+  totalDestinatarios: number;
+  dataCriacao: string;
+  dataAtualizacao: string | null;
+};
+
 export async function listarNotificacoes() {
   const { data } = await apiClient.get<Notificacao[]>('/notificacoes');
   return Array.isArray(data) ? data : [];
@@ -41,4 +56,19 @@ export async function notificarFavoritosEvento(eventoId: number, mensagem: strin
     { mensagem }
   );
   return data;
+}
+
+// Histórico de envios (igual ao front web): listar, editar e excluir.
+export async function listarEnviosNotificacao() {
+  const { data } = await apiClient.get<EnvioNotificacao[]>('/notificacoes/envios');
+  return Array.isArray(data) ? data : [];
+}
+
+export async function editarEnvioNotificacao(id: number, mensagem: string) {
+  const { data } = await apiClient.put<EnvioNotificacao>(`/notificacoes/envios/${id}`, { mensagem });
+  return data;
+}
+
+export async function excluirEnvioNotificacao(id: number) {
+  await apiClient.delete(`/notificacoes/envios/${id}`);
 }
