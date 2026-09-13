@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Modal,
   Pressable,
   ScrollView,
@@ -205,10 +206,15 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
             backgroundColor: Theme.light.bg,
             borderTopLeftRadius: Theme.radius.lg,
             borderTopRightRadius: Theme.radius.lg,
-            maxHeight: '90%',
+            // Altura máxima em pixels (não '90%') + flexShrink: sem isso o
+            // ScrollView abaixo não fica "preso" a esse limite — ele cresce
+            // pro tamanho do conteúdo e o final (Notificar quem favoritou +
+            // Excluir) fica empurrado pra fora da tela, sem rolagem alcançar.
+            maxHeight: Dimensions.get('window').height * 0.9,
+            flexShrink: 1,
           }}
         >
-          <SafeAreaView edges={['bottom']}>
+          <SafeAreaView edges={['bottom']} style={{ flexShrink: 1 }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -230,8 +236,10 @@ export function EditEventModal({ event, visible, onClose, onSaved, onDeleted }: 
             </View>
 
             <ScrollView
+              style={{ flexShrink: 1 }}
               contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 }}
               keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator
             >
               {!!error && (
                 <Text
