@@ -11,7 +11,6 @@ export async function criarComentario(eventoId: number, texto: string) {
   return data;
 }
 
-export async function excluirComentario(comentarioId: number) {
-  await apiClient.delete(`/comentarios/${comentarioId}`);
+export async function excluirComentario(eventoId: number, comentarioId: number) {
+  await apiClient.delete(`/eventos/${eventoId}/comentarios/${comentarioId}`);
 }
-

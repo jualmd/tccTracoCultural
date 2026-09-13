@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Linking,
   Modal,
@@ -98,6 +99,9 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
   const selectedEvent = detail ?? event;
   const category = selectedEvent?.categoria?.nome ?? 'Cultura';
   const canSubmitComment = commentText.trim().length > 0 && !commentLoading;
+  // Dono do evento pode moderar qualquer comentário nele — não só os próprios
+  // (mesma regra do EventoDetalhe.jsx no web: user.id === autor || isOwner).
+  const isEventOwner = !!user?.id && !!selectedEvent?.idUsuarioFk && selectedEvent.idUsuarioFk === user.id;
 
   const sortedComments = useMemo(
     () => [...comments].sort((a, b) => Number(new Date(b.dataCriacao ?? 0)) - Number(new Date(a.dataCriacao ?? 0))),
@@ -117,8 +121,20 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
   }
 
   async function handleDeleteComment(id: number) {
-    await excluirComentario(id);
+    if (!selectedEvent) return;
+    await excluirComentario(selectedEvent.id, id);
     setComments((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  function confirmDeleteComment(id: number) {
+    Alert.alert(
+      'Remover comentário',
+      'Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Remover', style: 'destructive', onPress: () => handleDeleteComment(id) },
+      ]
+    );
   }
 
   if (!event || !selectedEvent) return null;
@@ -403,7 +419,7 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                   </Text>
                 ) : (
                   sortedComments.map((comment) => {
-                    const canDelete = !!user?.id && comment.idUsuarioFk === user.id;
+                    const canDelete = !!user?.id && (comment.idUsuarioFk === user.id || isEventOwner);
                     const authorName = comment.nomeUsuario ?? 'Usuário';
                     return (
                       <View
@@ -423,7 +439,7 @@ export function EventDetailModal({ event, visible, onClose, onFavorite, isFavori
                               </Text>
                               {canDelete && (
                                 <Pressable
-                                  onPress={() => handleDeleteComment(comment.id)}
+                                  onPress={() => confirmDeleteComment(comment.id)}
                                   hitSlop={10}
                                   style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
                                 >
