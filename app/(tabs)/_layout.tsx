@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/theme';
 
 // Garante que a tela de boas-vindas seja a primeira exibida ao abrir o app,
@@ -9,6 +10,14 @@ export const unstable_settings = {
 };
 
 export default function TabsLayout() {
+  // Ao definir uma altura fixa para a tabBar, o React Navigation deixa de
+  // somar automaticamente o inset seguro inferior (home indicator no iOS,
+  // gesture bar no Android). Por isso somamos manualmente aqui — sem isso
+  // os ícones/labels ficam espremidos ou parcialmente cobertos pela barra
+  // de gestos em aparelhos físicos, mesmo funcionando bem no emulador.
+  const insets = useSafeAreaInsets();
+  const bottomInset = insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
@@ -20,9 +29,9 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 72,
+          height: 60 + bottomInset,
           paddingTop: 10,
-          paddingBottom: 12,
+          paddingBottom: Math.max(bottomInset, 12),
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -100,6 +109,10 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="edit-profile"
+        options={{ href: null, tabBarStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="alterar-senha"
         options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
       <Tabs.Screen
