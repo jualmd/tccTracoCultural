@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { EventCard } from '@/components/event-card';
 import { EventDetailModal } from '@/components/event-detail-modal';
 import { EditEventModal } from '@/components/edit-event-modal';
@@ -72,12 +72,9 @@ export default function Home() {
 
   // Recarrega a lista sempre que a Home ganha foco de novo -- garante que
   // qualquer alteração feita em outra tela (ex: editar evento) reflita aqui.
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-  );
+  useFocusEffect(() => {
+  refresh();
+});
 
   return (
     <View style={{ flex: 1, backgroundColor: Theme.colors.primaryDark }}>

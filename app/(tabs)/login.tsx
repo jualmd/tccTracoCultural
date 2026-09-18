@@ -48,7 +48,8 @@ export default function Login() {
       } else if (status === 429) {
         Alert.alert('Muitas tentativas', 'Aguarde alguns minutos antes de tentar novamente.');
       } else {
-        Alert.alert('Erro', error.response?.data?.message ?? 'Não foi possível realizar o login. Tente novamente.');
+        console.log(error);
+        Alert.alert('Erro', error.response?.data?.message ?? 'Não foi possível realizar o login. Tente novamente...');
       }
     } finally {
       setLoading(false);
