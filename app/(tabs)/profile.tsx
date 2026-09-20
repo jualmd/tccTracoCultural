@@ -318,7 +318,7 @@ export default function Profile() {
             <SectionButton
               icon="person-outline"
               label="Editar Informações"
-              onPress={() => router.push('/(tabs)/edit-profile')}
+              onPress={() => router.push('/edit-profile')}
             />
           </Card>
 
@@ -327,7 +327,7 @@ export default function Profile() {
             <SectionButton
               icon="options-outline"
               label="Configurações"
-              onPress={() => router.push('/(tabs)/configuracoes' as never)}
+              onPress={() => router.push('/configuracoes' as never)}
             />
           </Card>
 
@@ -338,7 +338,7 @@ export default function Profile() {
                 <SectionButton
                   icon="megaphone-outline"
                   label="Enviar Notificação"
-                  onPress={() => router.push('/(tabs)/admin-notificacoes' as never)}
+                  onPress={() => router.push('/admin-notificacoes' as never)}
                 />
               </Card>
             </>

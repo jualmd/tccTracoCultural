@@ -1,9 +1,10 @@
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/constants/theme';
+import { Button } from '@/components/ui/button';
 
 // Espelha ".welcome-page" do front web (paginas/WelcomePage + WelcomePage.css):
 // fundo em gradiente escuro com manchas decorativas, badge, título grande,
@@ -116,38 +117,16 @@ export default function Welcome() {
           </Text>
 
           <View style={{ width: '100%', gap: 12 }}>
-            <Pressable
-              onPress={() => router.push('/(tabs)/login' as never)}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                backgroundColor: Theme.colors.accent,
-                borderRadius: Theme.radius.pill,
-                paddingVertical: 15,
-                opacity: pressed ? 0.85 : 1,
-                ...Theme.shadow.accent,
-              })}
-            >
-              <Ionicons name="arrow-forward-circle-outline" size={19} color={Theme.colors.primaryDark} />
-              <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 15 }}>Entrar</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push('/(tabs)/cadastrar' as never)}
-              style={({ pressed }) => ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: pressed ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.10)',
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.22)',
-                borderRadius: Theme.radius.pill,
-                paddingVertical: 15,
-              })}
-            >
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Criar conta grátis</Text>
-            </Pressable>
+            <Button
+              label="Entrar"
+              icon="arrow-forward-circle-outline"
+              onPress={() => router.push('/login' as never)}
+            />
+            <Button
+              label="Criar conta grátis"
+              variant="outlineOnDark"
+              onPress={() => router.push('/cadastrar' as never)}
+            />
           </View>
         </View>
 

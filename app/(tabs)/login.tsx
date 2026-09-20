@@ -39,7 +39,7 @@ export default function Login() {
       const status = error.response?.status;
       if (status === 403 && error.response?.data?.emailNaoConfirmado) {
         router.push({
-          pathname: '/(tabs)/verificar-codigo',
+          pathname: '/verificar-codigo',
           params: { email: email.trim(), origem: 'login' },
         } as never);
         return;
@@ -95,7 +95,7 @@ export default function Login() {
             </Pressable>
           </View>
         </AuthField>
-        <Pressable onPress={() => router.push('/(tabs)/esqueci-senha' as never)} style={{ alignSelf: 'flex-end', marginTop: -12, marginBottom: 8 }}>
+        <Pressable onPress={() => router.push('/esqueci-senha' as never)} style={{ alignSelf: 'flex-end', marginTop: -12, marginBottom: 8 }}>
           <Text style={{ color: Theme.colors.accentDark, fontSize: 12.5, fontWeight: '600' }}>Esqueceu a senha?</Text>
         </Pressable>
       </View>
@@ -112,7 +112,7 @@ export default function Login() {
       <View style={{ marginTop: 30, gap: 10 }}>
         <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>
           Não tem uma conta?{' '}
-          <Text onPress={() => router.push('/(tabs)/cadastrar' as never)} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
+          <Text onPress={() => router.push('/cadastrar' as never)} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
             Cadastre-se
           </Text>
         </Text>

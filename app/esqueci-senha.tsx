@@ -28,7 +28,7 @@ export default function EsqueciSenha() {
       // não confirmar se o email existe.
     } finally {
       setLoading(false);
-      router.push({ pathname: '/(tabs)/redefinir-senha', params: { email: email.trim() } } as never);
+      router.push({ pathname: '/redefinir-senha', params: { email: email.trim() } } as never);
     }
   }
 

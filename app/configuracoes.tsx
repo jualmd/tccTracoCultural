@@ -158,7 +158,7 @@ export default function EditProfile() {
       // senha — em vez de pedir a senha atual direto nesta tela.
       await esqueciSenha(user.email);
       router.push({
-        pathname: '/(tabs)/redefinir-senha',
+        pathname: '/redefinir-senha',
         params: { email: user.email },
       } as never);
     } catch {

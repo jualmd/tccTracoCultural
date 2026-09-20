@@ -95,7 +95,7 @@ export default function RedefinirSenha() {
     try {
       await redefinirSenha(email, codigo, novaSenha);
       setSucesso(true);
-      setTimeout(() => router.replace('/(tabs)/login' as never), 1200);
+      setTimeout(() => router.replace('/login' as never), 1200);
     } catch (err: any) {
       const status = err.response?.status;
       const msg = err.response?.data?.message;
@@ -245,7 +245,7 @@ export default function RedefinirSenha() {
             </Text>
           )}
         </Text>
-        <Text onPress={() => router.replace('/(tabs)/login' as never)} style={{ color: '#b3a9a3', fontSize: 12.5 }}>
+        <Text onPress={() => router.replace('/login' as never)} style={{ color: '#b3a9a3', fontSize: 12.5 }}>
           Voltar para o login
         </Text>
       </View>

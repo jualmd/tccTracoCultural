@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await clearSession();
-    router.replace('/(tabs)/login' as never);
+    router.replace('/login' as never);
   }, [clearSession, router]);
 
   const refreshUser = useCallback(async () => {
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       route.includes('esqueci-senha') ||
       route.includes('redefinir-senha');
 
-    if (!token && !isPublicRoute) router.replace('/(tabs)/login' as never);
+    if (!token && !isPublicRoute) router.replace('/login' as never);
     if (token && isPublicRoute) router.replace('/(tabs)' as never);
   }, [loadingSession, router, segments, token]);
 

@@ -3,12 +3,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/theme';
 
-// Garante que a tela de boas-vindas seja a primeira exibida ao abrir o app,
-// mesmo com o Tabs (o back gesture cai no welcome, não direto na Home).
-export const unstable_settings = {
-  initialRouteName: 'welcome',
-};
-
 export default function TabsLayout() {
   // Ao definir uma altura fixa para a tabBar, o React Navigation deixa de
   // somar automaticamente o inset seguro inferior (home indicator no iOS,
@@ -44,30 +38,6 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="welcome"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="login"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="cadastrar"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="verificar-codigo"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="esqueci-senha"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="redefinir-senha"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
         name="index"
         options={{
           title: 'Início',
@@ -102,18 +72,6 @@ export default function TabsLayout() {
             <Ionicons name="person" size={26} color={color} />
           ),
         }}
-      />
-      <Tabs.Screen
-        name="configuracoes"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="edit-profile"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
-        name="admin-notificacoes"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
     </Tabs>
   );

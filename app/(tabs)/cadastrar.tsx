@@ -39,7 +39,7 @@ export default function Cadastrar() {
     setLoading(true);
     try {
       await cadastrarUsuario({ nome: nome.trim(), email: email.trim(), senha });
-      router.push({ pathname: '/(tabs)/verificar-codigo', params: { email: email.trim() } } as never);
+      router.push({ pathname: '/verificar-codigo', params: { email: email.trim() } } as never);
     } catch (err: any) {
       const status = err.response?.status;
       const msgBackend = err.response?.data?.message;
@@ -143,7 +143,7 @@ export default function Cadastrar() {
       <View style={{ marginTop: 30, gap: 10 }}>
         <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>
           Já tem uma conta?{' '}
-          <Text onPress={() => router.replace('/(tabs)/login' as never)} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
+          <Text onPress={() => router.replace('/login' as never)} style={{ color: Theme.colors.accentDark, fontWeight: '700' }}>
             Entrar
           </Text>
         </Text>
