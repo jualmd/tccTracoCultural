@@ -7,6 +7,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { DeleteAccountModal } from '@/components/delete-account-modal';
 import { EditEventModal } from '@/components/edit-event-modal';
 import { EventDetailModal } from '@/components/event-detail-modal';
+import { Button } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
@@ -353,22 +354,13 @@ export default function Profile() {
             />
           </Card>
 
-          <Pressable
+          <Button
+            label="Sair da Conta"
             onPress={logout}
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? Theme.colors.dangerDark : Theme.colors.danger,
-              borderRadius: Theme.radius.pill,
-              paddingVertical: 15,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: 8,
-              marginTop: 4,
-            })}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Sair da Conta</Text>
-          </Pressable>
+            variant="danger"
+            icon="log-out-outline"
+            style={{ marginTop: 4 }}
+          />
         </ScrollView>
       </SafeAreaView>
 

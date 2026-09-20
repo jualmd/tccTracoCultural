@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AuthField, AuthLayout, authInputStyle, authSubmitStyle } from '@/components/auth-layout';
+import { AuthField, AuthLayout, authInputStyle } from '@/components/auth-layout';
+import { Button } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { esqueciSenha, redefinirSenha, validarCodigo } from '@/services/auth-service';
 
@@ -225,15 +226,13 @@ export default function RedefinirSenha() {
         </AuthField>
       </View>
 
-      <Pressable
+      <Button
+        label="Redefinir senha"
         onPress={handleSubmit}
-        disabled={loading || sucesso || !revelado}
-        style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading || sucesso || !revelado })}
-      >
-        {loading ? <ActivityIndicator color="#fff" /> : (
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Redefinir senha</Text>
-        )}
-      </Pressable>
+        loading={loading}
+        disabled={sucesso || !revelado}
+        style={{ marginTop: 4 }}
+      />
 
       <View style={{ marginTop: 26, gap: 10 }}>
         <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { AuthField, AuthLayout, authInputStyle, authSubmitStyle } from '@/components/auth-layout';
+import { AuthField, AuthLayout, authInputStyle } from '@/components/auth-layout';
+import { Button } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { cadastrarUsuario } from '@/services/auth-service';
 
@@ -130,11 +131,14 @@ export default function Cadastrar() {
         </View>
       </AuthField>
 
-      <Pressable onPress={handleCadastrar} disabled={loading} style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading })}>
-        {loading ? <ActivityIndicator color="#fff" /> : (
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Criar conta</Text>
-        )}
-      </Pressable>
+      <Button
+        label="Criar conta"
+        onPress={handleCadastrar}
+        loading={loading}
+        icon="arrow-forward"
+        iconPosition="right"
+        style={{ marginTop: 8 }}
+      />
 
       <View style={{ marginTop: 30, gap: 10 }}>
         <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AuthLayout, authSubmitStyle } from '@/components/auth-layout';
+import { AuthLayout } from '@/components/auth-layout';
+import { Button } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { reenviarCodigo, verificarCodigoCadastro } from '@/services/auth-service';
@@ -148,11 +149,13 @@ export default function VerificarCodigo() {
         </Pressable>
       </View>
 
-      <Pressable onPress={handleConfirmar} disabled={loading || sucesso} style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading || sucesso })}>
-        {loading ? <ActivityIndicator color="#fff" /> : (
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Confirmar código</Text>
-        )}
-      </Pressable>
+      <Button
+        label="Confirmar código"
+        onPress={handleConfirmar}
+        loading={loading}
+        disabled={sucesso}
+        style={{ marginTop: 4 }}
+      />
 
       <View style={{ marginTop: 26, gap: 10 }}>
         <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>

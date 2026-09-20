@@ -93,8 +93,10 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
           </Text>
         </View>
 
-        {/* Ações no canto superior direito */}
-        <View style={{ position: 'absolute', top: 8, right: 8, flexDirection: 'row', gap: 6 }}>
+        {/* Ações no canto superior direito — mesmo tratamento (fundo +
+            borda) dos botões equivalentes no modal de detalhes do evento;
+            aqui elas não tinham borda, o que destoava do resto do app. */}
+        <View style={{ position: 'absolute', top: 10, right: 10, flexDirection: 'row', gap: 6 }}>
           {isOwner && onEdit && (
             <Pressable
               onPress={(e) => {
@@ -105,7 +107,9 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
               style={({ pressed }) => ({
                 backgroundColor: pressed ? 'rgba(30,20,18,0.75)' : 'rgba(30,20,18,0.55)',
                 borderRadius: 18,
-                padding: 6,
+                padding: 7,
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.22)',
                 transform: [{ scale: pressed ? 0.88 : 1 }],
               })}
             >
@@ -121,7 +125,9 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
             style={({ pressed }) => ({
               backgroundColor: pressed ? 'rgba(30,20,18,0.75)' : 'rgba(30,20,18,0.55)',
               borderRadius: 18,
-              padding: 6,
+              padding: 7,
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.22)',
               transform: [{ scale: pressed ? 0.88 : 1 }],
             })}
           >
@@ -140,13 +146,15 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
                 ? 'rgba(30,20,18,0.6)'
                 : 'rgba(30,20,18,0.4)',
               borderRadius: 18,
-              padding: 6,
+              padding: 7,
+              borderWidth: 1,
+              borderColor: isFavorited ? 'rgba(255,107,107,0.5)' : 'rgba(255,255,255,0.22)',
               transform: [{ scale: pressed ? 0.88 : 1 }],
             })}
           >
             <Ionicons
               name={isFavorited ? 'heart' : 'heart-outline'}
-              size={17}
+              size={16}
               color={isFavorited ? '#ff6b6b' : '#fff'}
             />
           </Pressable>

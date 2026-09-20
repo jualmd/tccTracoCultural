@@ -99,6 +99,23 @@ export default function Home() {
       />
 
       <SafeAreaView style={{ flex: 1 }}>
+
+        {/* Lista de eventos — o cabeçalho inteiro (hero, busca, categorias,
+            "perto de você") entra como ListHeaderComponent do MESMO FlatList
+            que renderiza os eventos, então a página rola de uma vez só. Antes
+            o cabeçalho ficava fixo fora do FlatList e só a lista rolava
+            dentro de uma caixa (flex: 1) de altura travada — dava a
+            sensação de "grudado"/travado ao chegar no fim do cabeçalho. */}
+        <FlatList
+          data={filteredEvents}
+          keyExtractor={(item) => String(item.id)}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={refresh}
+          ListHeaderComponent={
+            <>
         {/* ── Hero ── */}
         <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
           <View
@@ -401,16 +418,8 @@ export default function Home() {
             </View>
           )}
         </View>
-
-        {/* ── Lista de eventos (cards glass) ── */}
-        <FlatList
-          data={filteredEvents}
-          keyExtractor={(item) => String(item.id)}
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
-          showsVerticalScrollIndicator={false}
-          refreshing={loading}
-          onRefresh={refresh}
+            </>
+          }
           // Ajustes de performance — reduzem o trabalho por frame durante
           // o scroll (menos itens montados de uma vez, menos re-render).
           removeClippedSubviews
@@ -419,7 +428,7 @@ export default function Home() {
           windowSize={7}
           updateCellsBatchingPeriod={50}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', marginTop: 64 }}>
+            <View style={{ alignItems: 'center', marginTop: 64, paddingHorizontal: 20 }}>
               <View
                 style={{
                   width: 80,
@@ -445,15 +454,17 @@ export default function Home() {
             </View>
           }
           renderItem={({ item }) => (
-            <EventCard
-              event={item}
-              variant="dark"
-              onPress={() => setSelectedEvent(item)}
-              onFavorite={() => toggleFavorite(item.id)}
-              isFavorited={isFavorite(item.id)}
-              isOwner={!!user?.id && item.idUsuarioFk === user.id}
-              onEdit={() => setEditingEvent(item)}
-            />
+            <View style={{ paddingHorizontal: 20 }}>
+              <EventCard
+                event={item}
+                variant="dark"
+                onPress={() => setSelectedEvent(item)}
+                onFavorite={() => toggleFavorite(item.id)}
+                isFavorited={isFavorite(item.id)}
+                isOwner={!!user?.id && item.idUsuarioFk === user.id}
+                onEdit={() => setEditingEvent(item)}
+              />
+            </View>
           )}
         />
       </SafeAreaView>

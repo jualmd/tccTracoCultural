@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,8 +16,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/constants/theme';
 import { SuccessModal } from '@/components/success-modal';
+import { Button, ButtonRow } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { atualizarUsuario } from '@/services/user-service';
+import { esqueciSenha } from '@/services/auth-service';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -97,6 +100,7 @@ export default function EditProfile() {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Errors>({ name: '', email: '' });
   const [loading, setLoading] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
@@ -142,6 +146,25 @@ export default function EditProfile() {
       router.back();
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleAlterarSenha() {
+    if (!user?.email || sendingCode) return;
+    setSendingCode(true);
+    try {
+      // Mesmo fluxo de "esqueci minha senha": envia um código de 6 dígitos
+      // por email e só a partir dele a pessoa consegue definir a nova
+      // senha — em vez de pedir a senha atual direto nesta tela.
+      await esqueciSenha(user.email);
+      router.push({
+        pathname: '/(tabs)/redefinir-senha',
+        params: { email: user.email },
+      } as never);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível enviar o código agora. Tente novamente.');
+    } finally {
+      setSendingCode(false);
     }
   }
 
@@ -225,10 +248,12 @@ export default function EditProfile() {
                 </View>
               </View>
 
-              {/* Alterar senha — leva para uma tela dedicada em vez de
-                  expor os campos aqui dentro do formulário de dados. */}
+              {/* Alterar senha — dispara o envio do código por email (mesmo
+                  fluxo de "esqueci senha") e leva direto pra tela que
+                  recebe esse código, em vez de pedir a senha atual aqui. */}
               <Pressable
-                onPress={() => router.push('/(tabs)/alterar-senha' as never)}
+                onPress={handleAlterarSenha}
+                disabled={sendingCode}
                 style={({ pressed }) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -239,6 +264,7 @@ export default function EditProfile() {
                   borderColor: Theme.glass.border,
                   padding: 18,
                   marginBottom: 24,
+                  opacity: sendingCode ? 0.7 : 1,
                 })}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -259,51 +285,32 @@ export default function EditProfile() {
                       Alterar Senha
                     </Text>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>
-                      Atualize sua senha de acesso
+                      {sendingCode ? 'Enviando código...' : 'Enviaremos um código por email'}
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                {sendingCode ? (
+                  <ActivityIndicator size="small" color="rgba(255,255,255,0.7)" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                )}
               </Pressable>
 
               {/* Botões */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <Pressable
+              <ButtonRow>
+                <Button
+                  label="Cancelar"
+                  variant="outlineOnDark"
                   onPress={() => router.back()}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    borderRadius: Theme.radius.pill,
-                    paddingVertical: 14,
-                    alignItems: 'center',
-                    borderWidth: 1,
-                    borderColor: 'rgba(255,255,255,0.35)',
-                    backgroundColor: pressed ? Theme.glass.bg : 'transparent',
-                  })}
-                >
-                  <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Cancelar</Text>
-                </Pressable>
-
-                <Pressable
+                  style={{ flex: 1 }}
+                />
+                <Button
+                  label="Salvar Alterações"
+                  loading={loading}
                   onPress={handleSave}
-                  disabled={loading}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    borderRadius: Theme.radius.pill,
-                    paddingVertical: 14,
-                    alignItems: 'center',
-                    backgroundColor: pressed ? Theme.colors.accentDark : Theme.colors.accent,
-                    ...Theme.shadow.accent,
-                  })}
-                >
-                  {loading ? (
-                    <ActivityIndicator color={Theme.colors.primaryDark} />
-                  ) : (
-                    <Text style={{ color: Theme.colors.primaryDark, fontWeight: '700', fontSize: 15 }}>
-                      Salvar Alterações
-                    </Text>
-                  )}
-                </Pressable>
-              </View>
+                  style={{ flex: 1 }}
+                />
+              </ButtonRow>
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>

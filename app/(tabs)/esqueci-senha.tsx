@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AuthField, AuthLayout, authInputStyle, authSubmitStyle } from '@/components/auth-layout';
+import { AuthField, AuthLayout, authInputStyle } from '@/components/auth-layout';
+import { Button } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { esqueciSenha } from '@/services/auth-service';
 
@@ -64,11 +65,14 @@ export default function EsqueciSenha() {
         />
       </AuthField>
 
-      <Pressable onPress={handleEnviar} disabled={loading} style={({ pressed }) => authSubmitStyle({ pressed, disabled: loading })}>
-        {loading ? <ActivityIndicator color="#fff" /> : (
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.4 }}>Enviar código</Text>
-        )}
-      </Pressable>
+      <Button
+        label="Enviar código"
+        onPress={handleEnviar}
+        loading={loading}
+        icon="arrow-forward"
+        iconPosition="right"
+        style={{ marginTop: 8 }}
+      />
 
       <View style={{ marginTop: 30, gap: 10 }}>
         <Text style={{ color: Theme.light.textMuted, fontSize: 13.5 }}>

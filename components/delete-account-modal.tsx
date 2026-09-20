@@ -1,6 +1,7 @@
-import { ActivityIndicator, Alert, Modal, Pressable, Text, View } from 'react-native';
+import { Alert, Modal, Text, View } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { Button, ButtonRow } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { excluirUsuario } from '@/services/user-service';
@@ -90,40 +91,10 @@ export function DeleteAccountModal({ visible, onClose }: Props) {
             Esta ação é irreversível. Todos os seus dados serão perdidos.
           </Text>
 
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <Pressable
-              onPress={onClose}
-              style={({ pressed }) => ({
-                flex: 1,
-                backgroundColor: pressed ? Theme.glass.bg : 'transparent',
-                borderRadius: Theme.radius.pill,
-                paddingVertical: 13,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: Theme.glass.border,
-              })}
-            >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Cancelar</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={handleDelete}
-              disabled={loading}
-              style={({ pressed }) => ({
-                flex: 1,
-                backgroundColor: pressed ? Theme.colors.dangerDark : Theme.colors.danger,
-                borderRadius: Theme.radius.pill,
-                paddingVertical: 13,
-                alignItems: 'center',
-              })}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Excluir</Text>
-              )}
-            </Pressable>
-          </View>
+          <ButtonRow>
+            <Button label="Cancelar" onPress={onClose} variant="outlineOnDark" disabled={loading} style={{ flex: 1 }} />
+            <Button label="Excluir" onPress={handleDelete} variant="danger" loading={loading} style={{ flex: 1 }} />
+          </ButtonRow>
         </View>
       </View>
     </Modal>

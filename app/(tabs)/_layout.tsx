@@ -112,10 +112,6 @@ export default function TabsLayout() {
         options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
       <Tabs.Screen
-        name="alterar-senha"
-        options={{ href: null, tabBarStyle: { display: 'none' } }}
-      />
-      <Tabs.Screen
         name="admin-notificacoes"
         options={{ href: null, tabBarStyle: { display: 'none' } }}
       />
