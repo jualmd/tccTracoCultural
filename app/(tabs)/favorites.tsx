@@ -118,6 +118,10 @@ export default function Favorites() {
           showsVerticalScrollIndicator={false}
           refreshing={loadingFavorites}
           onRefresh={refreshFavorites}
+          removeClippedSubviews
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
+          windowSize={7}
           ListEmptyComponent={
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 80 }}>
               <View

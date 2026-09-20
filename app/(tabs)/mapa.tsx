@@ -32,9 +32,13 @@ const MAP_HTML = `
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const map = L.map('map', { zoomControl: false }).setView([-14.235, -51.9253], 4);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    // Tiles do OpenStreetMap (gratuitos, sem exigir API key). O provedor
+    // anterior (CARTO basemaps.cartocdn.com) passou a exigir chave de API
+    // e sem ela mostra um selo "API KEY REQUIRED" espalhado pelo mapa.
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
+      subdomains: 'abc',
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     const iconeEvento = L.divIcon({

@@ -23,9 +23,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type Errors = {
   name: string;
   email: string;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
 };
 
 function Field({
@@ -98,12 +95,7 @@ function Field({
 export default function EditProfile() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<Errors>({
-    name: '', email: '', currentPassword: '', newPassword: '', confirmPassword: '',
-  });
+  const [errors, setErrors] = useState<Errors>({ name: '', email: '' });
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -125,48 +117,26 @@ export default function EditProfile() {
     setErrors((p) => ({ ...p, [field]: '' }));
   }
 
-  async function validate() {
-    const e: Errors = {
-      name: '', email: '', currentPassword: '', newPassword: '', confirmPassword: '',
-    };
+  function validate() {
+    const e: Errors = { name: '', email: '' };
 
     if (!name.trim()) e.name = 'Nome obrigatório';
     if (!email) e.email = 'Email obrigatório';
     else if (!EMAIL_REGEX.test(email)) e.email = 'Email inválido';
-
-    const changingPassword = currentPassword || newPassword || confirmPassword;
-    if (changingPassword) {
-      if (!currentPassword) e.currentPassword = 'Informe a senha atual';
-      if (!newPassword) e.newPassword = 'Informe a nova senha';
-      else if (newPassword.length < 6) e.newPassword = 'Mínimo 6 caracteres';
-      if (!confirmPassword) e.confirmPassword = 'Confirme a nova senha';
-      else if (newPassword !== confirmPassword) e.confirmPassword = 'As senhas não coincidem';
-    }
 
     setErrors(e);
     return !Object.values(e).some(Boolean);
   }
 
   async function handleSave() {
-    const valid = await validate();
-    if (!valid) return;
+    if (!validate()) return;
 
     setLoading(true);
     try {
       if (!user?.id) throw new Error('Usuário não encontrado');
-      const payload: any = { nome: name.trim(), email };
-
-      const changingPassword = currentPassword || newPassword || confirmPassword;
-      if (changingPassword && newPassword) {
-        payload.senhaAtual = currentPassword;
-        payload.senha = newPassword;
-        setSuccessMessage('Senha alterada com sucesso!');
-      } else {
-        setSuccessMessage('Informações atualizadas com sucesso!');
-      }
-
-      const updated = await atualizarUsuario(user.id, payload);
+      const updated = await atualizarUsuario(user.id, { nome: name.trim(), email });
       setUser(updated);
+      setSuccessMessage('Informações atualizadas com sucesso!');
       setShowSuccess(true);
     } catch {
       router.back();
@@ -255,52 +225,46 @@ export default function EditProfile() {
                 </View>
               </View>
 
-              {/* Alterar senha */}
-              <View
-                style={{
-                  backgroundColor: Theme.glass.bg,
+              {/* Alterar senha — leva para uma tela dedicada em vez de
+                  expor os campos aqui dentro do formulário de dados. */}
+              <Pressable
+                onPress={() => router.push('/(tabs)/alterar-senha' as never)}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: pressed ? Theme.glass.bgMd : Theme.glass.bg,
                   borderRadius: Theme.radius.md,
                   borderWidth: 1,
                   borderColor: Theme.glass.border,
-                  padding: 20,
+                  padding: 18,
                   marginBottom: 24,
-                }}
+                })}
               >
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 }}>
-                  Alterar Senha
-                </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 16 }}>
-                  Deixe em branco para manter a senha atual
-                </Text>
-                <Field
-                  label="Senha atual"
-                  value={currentPassword}
-                  onChangeText={(v) => { setCurrentPassword(v); clearError('currentPassword'); }}
-                  error={errors.currentPassword}
-                  placeholder="••••••••"
-                  secure
-                />
-                <View style={{ marginTop: 12 }}>
-                  <Field
-                    label="Nova senha"
-                    value={newPassword}
-                    onChangeText={(v) => { setNewPassword(v); clearError('newPassword'); }}
-                    error={errors.newPassword}
-                    placeholder="Mínimo 6 caracteres"
-                    secure
-                  />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      backgroundColor: 'rgba(255,255,255,0.10)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="lock-closed-outline" size={18} color="#fff" />
+                  </View>
+                  <View>
+                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>
+                      Alterar Senha
+                    </Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>
+                      Atualize sua senha de acesso
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ marginTop: 12 }}>
-                  <Field
-                    label="Confirmar nova senha"
-                    value={confirmPassword}
-                    onChangeText={(v) => { setConfirmPassword(v); clearError('confirmPassword'); }}
-                    error={errors.confirmPassword}
-                    placeholder="Repita a nova senha"
-                    secure
-                  />
-                </View>
-              </View>
+                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+              </Pressable>
 
               {/* Botões */}
               <View style={{ flexDirection: 'row', gap: 12 }}>

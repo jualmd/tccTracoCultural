@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
@@ -24,6 +24,8 @@ type Props = {
  * sobrepondo levemente o painel.
  */
 export function AuthLayout({ icon, title, subtitle, children }: Props) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={{ flex: 1, backgroundColor: Theme.colors.primaryDark }}>
       <LinearGradient
@@ -59,7 +61,16 @@ export function AuthLayout({ icon, title, subtitle, children }: Props) {
       />
 
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          // No Android o próprio SO já redimensiona a tela quando o teclado
+          // abre (windowSoftInputMode padrão do Expo é "adjustResize"). Usar
+          // behavior "height" ali por cima disso fazia o conteúdo encolher
+          // duas vezes, empurrando/cortando o botão de "Entrar" para fora
+          // da área visível em telas menores — por isso só aplicamos o
+          // KeyboardAvoidingView no iOS.
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
@@ -105,16 +116,23 @@ export function AuthLayout({ icon, title, subtitle, children }: Props) {
               </Text>
             </View>
 
-            {/* ── asp-form-lado / asp-card ── */}
+            {/* ── asp-form-lado / asp-card ──
+                minHeight (em vez de flex: 1) garante que o cartão sempre
+                preencha o resto da tela quando o conteúdo é curto, mas sem
+                forçar um encolhimento errado quando o ScrollView é
+                comprimido pelo teclado — e o paddingBottom soma a área
+                segura inferior (home indicator / gesture bar) para o botão
+                nunca ficar colado ou escondido nela. */}
             <View
               style={{
-                flex: 1,
+                flexGrow: 1,
+                minHeight: 1,
                 backgroundColor: Theme.light.bg,
                 borderTopLeftRadius: 28,
                 borderTopRightRadius: 28,
                 paddingHorizontal: 24,
                 paddingTop: 28,
-                paddingBottom: 40,
+                paddingBottom: 40 + insets.bottom,
               }}
             >
               {children}

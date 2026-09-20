@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
@@ -32,10 +33,17 @@ function getImageSource(event: Evento) {
   return { uri: `data:image/jpeg;base64,${event.cardImage}` };
 }
 
-export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = false, onEdit, variant = 'light' }: Props) {
+function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = false, onEdit, variant = 'light' }: Props) {
   const category = event.categoria?.nome ?? 'Cultura';
   const dark = variant === 'dark';
   const { user } = useAuth();
+
+  // getImageSource() cria um objeto novo a cada chamada; sem memoizar,
+  // toda vez que o card re-renderiza (ex: favoritar QUALQUER evento da
+  // lista dispara um novo valor de contexto) o <Image> recebe uma "source"
+  // com identidade diferente e é forçado a redecodificar a imagem (pior
+  // ainda em base64), o que deixava a rolagem da lista travando.
+  const imageSource = useMemo(() => getImageSource(event), [event.cardImage, event.id]);
 
   return (
     <Pressable
@@ -55,7 +63,7 @@ export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = f
       {/* Imagem responsiva */}
       <View style={{ aspectRatio: 16 / 9 }}>
         <Image
-          source={getImageSource(event)}
+          source={imageSource}
           style={{ width: '100%', height: '100%' }}
           resizeMode="cover"
         />
@@ -179,3 +187,14 @@ export function EventCard({ event, onPress, onFavorite, isFavorited, isOwner = f
     </Pressable>
   );
 }
+
+// React.memo evita re-renderizar TODOS os cards visíveis quando só um
+// favorito muda em outro item da lista (o contexto de favoritos troca de
+// valor inteiro a cada toggle) — sem isso, cada toque no ❤️ re-renderizava
+// a lista inteira e piorava a sensação de travamento no scroll.
+export const EventCard = memo(EventCardImpl, (prev, next) => (
+  prev.event === next.event &&
+  prev.isFavorited === next.isFavorited &&
+  prev.isOwner === next.isOwner &&
+  prev.variant === next.variant
+));

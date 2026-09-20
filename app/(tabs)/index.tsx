@@ -239,6 +239,7 @@ export default function Home() {
 
         {/* ── Categorias (chips uniformes: mesma altura, largura mínima, 1 linha) ── */}
         {categories.length > 0 && (
+          <View style={{ position: 'relative' }}>
           <FlatList
             horizontal
             data={['Todos', ...categories]}
@@ -307,6 +308,18 @@ export default function Home() {
               );
             }}
           />
+          {/* Degradê na borda direita — dá a dica visual de que a lista
+              continua e pode ser arrastada (sem isso o último chip fica
+              cortado na borda da tela sem nenhum indício de que há mais
+              categorias, o que parecia "quebrado"). */}
+          <LinearGradient
+            colors={['transparent', Theme.colors.primaryDark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            pointerEvents="none"
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 16, width: 28 }}
+          />
+          </View>
         )}
 
         {/* ── Eventos perto de você (mesma cidade, scroll horizontal) ── */}
@@ -398,6 +411,13 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
           refreshing={loading}
           onRefresh={refresh}
+          // Ajustes de performance — reduzem o trabalho por frame durante
+          // o scroll (menos itens montados de uma vez, menos re-render).
+          removeClippedSubviews
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          updateCellsBatchingPeriod={50}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 64 }}>
               <View
