@@ -22,6 +22,29 @@ export const Theme = {
     placeholder: 'rgba(255,255,255,0.45)',
   },
 
+  // Escala de espaçamento única — antes cada tela usava paddingHorizontal
+  // 16/18/20/24 meio ao acaso; usar essa escala em telas novas/redesenhadas
+  // deixa o ritmo vertical/horizontal consistente entre elas.
+  space: {
+    xs: 6,
+    sm: 10,
+    md: 16,
+    lg: 20,
+    xl: 28,
+    xxl: 40,
+  },
+
+  // Escala tipográfica — tamanho/peso/altura de linha combinados, pra não
+  // ter cada tela escolhendo um fontSize levemente diferente pra "título".
+  type: {
+    display: { fontSize: 34, fontWeight: '800' as const, lineHeight: 38, letterSpacing: -0.6 },
+    title: { fontSize: 22, fontWeight: '800' as const, lineHeight: 27, letterSpacing: -0.4 },
+    subtitle: { fontSize: 15, fontWeight: '700' as const, lineHeight: 20 },
+    body: { fontSize: 14.5, fontWeight: '400' as const, lineHeight: 21 },
+    caption: { fontSize: 12.5, fontWeight: '500' as const, lineHeight: 17 },
+    label: { fontSize: 11, fontWeight: '700' as const, lineHeight: 14, letterSpacing: 0.6 },
+  },
+
   // ── Tema claro (espelha estilos/temaClaro.css do front web) ──
   // Usado nas telas com navegação por abas (Home, Mapa, Favoritos,
   // Perfil, Configurações), que abandonaram o gradiente escuro/glass
@@ -68,22 +91,22 @@ export const Theme = {
 
   shadow: {
     accent: {
-      shadowColor: '#D4A373',
-      shadowOpacity: 0.45,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 8,
+      shadowColor: '#B8864E',
+      shadowOpacity: 0.35,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 6,
       // web
-      boxShadow: '0px 8px 14px rgba(212,163,115,0.45)',
+      boxShadow: '0px 6px 12px rgba(184,134,78,0.35)',
     },
     card: {
       shadowColor: '#000',
-      shadowOpacity: 0.25,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 6,
+      shadowOpacity: 0.22,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 5,
       // web
-      boxShadow: '0px 8px 16px rgba(0,0,0,0.25)',
+      boxShadow: '0px 6px 14px rgba(0,0,0,0.22)',
     },
   },
 

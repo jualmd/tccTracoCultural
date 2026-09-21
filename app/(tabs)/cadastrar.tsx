@@ -77,7 +77,7 @@ export default function Cadastrar() {
           placeholder="Seu nome completo"
           placeholderTextColor="#cabdb5"
           autoCapitalize="words"
-          style={[authInputStyle, errors.nome ? { borderBottomColor: '#e74c3c' } : null]}
+          style={[authInputStyle]}                     // campo Nome
         />
       </AuthField>
 
@@ -90,7 +90,7 @@ export default function Cadastrar() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
-          style={[authInputStyle, errors.email ? { borderBottomColor: '#e74c3c' } : null]}
+style={[authInputStyle]}                     // campo Email
         />
       </AuthField>
 
@@ -103,7 +103,7 @@ export default function Cadastrar() {
               placeholder="Ex: Traco123@"
               placeholderTextColor="#cabdb5"
               secureTextEntry={!showSenha}
-              style={[authInputStyle, { flex: 1 }, errors.senha ? { borderBottomColor: '#e74c3c' } : null]}
+              style={[authInputStyle, { flex: 1 }]}        // campo Senha
             />
             <Pressable onPress={() => setShowSenha((p) => !p)} hitSlop={8} style={{ paddingBottom: 10 }}>
               <Ionicons name={showSenha ? 'eye-off-outline' : 'eye-outline'} size={17} color={Theme.colors.accentDark} />
@@ -123,7 +123,7 @@ export default function Cadastrar() {
             placeholder="Repita a senha"
             placeholderTextColor="#cabdb5"
             secureTextEntry={!showConfirmar}
-            style={[authInputStyle, { flex: 1 }, errors.confirmarSenha ? { borderBottomColor: '#e74c3c' } : null]}
+            style={[authInputStyle, { flex: 1 }]}        // campo Confirmar senha
           />
           <Pressable onPress={() => setShowConfirmar((p) => !p)} hitSlop={8} style={{ paddingBottom: 10 }}>
             <Ionicons name={showConfirmar ? 'eye-off-outline' : 'eye-outline'} size={17} color={Theme.colors.accentDark} />

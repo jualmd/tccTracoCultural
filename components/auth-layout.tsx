@@ -144,7 +144,9 @@ export function AuthLayout({ icon, title, subtitle, children }: Props) {
   );
 }
 
-/** Campo com label maiúsculo + underline, espelhando .asp-group / .asp-group input */
+/** Campo com label maiúsculo + container arredondado preenchido, espelhando
+ *  a linguagem visual do resto do app (glass/pill) em vez do underline
+ *  simples que tinha antes — fica mais alinhado com os cards e botões. */
 export function AuthField({
   label,
   icon,
@@ -170,7 +172,17 @@ export function AuthField({
       >
         {label}
       </Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: Theme.light.surfaceAlt,
+          borderRadius: Theme.radius.sm,
+          borderWidth: 1.5,
+          borderColor: error ? '#e8a2a2' : 'transparent',
+          paddingHorizontal: 14,
+        }}
+      >
         {icon && (
           <Ionicons
             name={icon}
@@ -182,16 +194,20 @@ export function AuthField({
         <View style={{ flex: 1 }}>{children}</View>
       </View>
       {!!error && (
-        <Text style={{ color: '#c0392b', fontSize: 12, fontWeight: '500', marginTop: 5 }}>{error}</Text>
+        <Text style={{ color: '#c0392b', fontSize: 12, fontWeight: '500', marginTop: 5, marginLeft: 2 }}>{error}</Text>
       )}
     </View>
   );
 }
 
+// Sem underline/borda própria — quem desenha o contorno agora é o
+// container do AuthField (fundo preenchido, cantos arredondados), o que
+// deixa o padrão visual consistente com o resto do app (cards, botões).
+// A prop de erro deixou de mudar a cor daqui: o AuthField já marca a
+// borda do container em vermelho, então repetir isso no input por baixo
+// era redundante.
 export const authInputStyle = {
-  borderBottomWidth: 2,
-  borderBottomColor: '#ece3dc',
-  paddingVertical: 10,
+  paddingVertical: 13,
   fontSize: 15,
   color: Theme.light.text,
 } as const;

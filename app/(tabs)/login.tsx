@@ -75,7 +75,7 @@ export default function Login() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
-          style={[authInputStyle, errors.email ? { borderBottomColor: '#e74c3c' } : null]}
+          style={[authInputStyle]}                    // era: style={[authInputStyle, errors.email ? { borderBottomColor: '#e74c3c' } : null]}
         />
       </AuthField>
 
@@ -88,7 +88,7 @@ export default function Login() {
               placeholder="••••••••"
               placeholderTextColor="#cabdb5"
               secureTextEntry={!showSenha}
-              style={[authInputStyle, { flex: 1 }, errors.senha ? { borderBottomColor: '#e74c3c' } : null]}
+              style={[authInputStyle, { flex: 1 }]}        // era: style={[authInputStyle, { flex: 1 }, errors.senha ? { borderBottomColor: '#e74c3c' } : null]}
             />
             <Pressable onPress={() => setShowSenha((p) => !p)} hitSlop={8} style={{ paddingBottom: 10 }}>
               <Ionicons name={showSenha ? 'eye-off-outline' : 'eye-outline'} size={17} color={Theme.colors.accentDark} />

@@ -61,8 +61,8 @@ export default function EsqueciSenha() {
           autoCapitalize="none"
           autoCorrect={false}
           autoFocus
-          style={[authInputStyle, erro ? { borderBottomColor: '#e74c3c' } : null]}
-        />
+          style={[authInputStyle]}                     // campo Email      
+  />
       </AuthField>
 
       <Button

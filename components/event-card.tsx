@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/theme';
 import { shareEvento } from '@/lib/share';
@@ -68,16 +69,27 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
           resizeMode="cover"
         />
 
+        {/* Scrim de gradiente no topo — sem isso, o badge e os ícones de
+            ação dependiam da foto ser escura pra terem contraste; com
+            fotos claras eles ficavam quase ilegíveis "flutuando" sobre a
+            imagem. Agora sempre têm um fundo escuro sutil por trás. */}
+        <LinearGradient
+          colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0)']}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '48%' }}
+          pointerEvents="none"
+        />
+
         {/* Badge categoria */}
         <View
           style={{
             position: 'absolute',
-            top: 10,
-            left: 10,
+            top: Theme.space.sm,
+            left: Theme.space.sm,
             backgroundColor: Theme.colors.accent,
             borderRadius: Theme.radius.pill,
             paddingHorizontal: 9,
-            paddingVertical: 3,
+            paddingVertical: 4,
+            ...Theme.shadow.card,
           }}
         >
           <Text
@@ -95,8 +107,8 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
 
         {/* Ações no canto superior direito — mesmo tratamento (fundo +
             borda) dos botões equivalentes no modal de detalhes do evento;
-            aqui elas não tinham borda, o que destoava do resto do app. */}
-        <View style={{ position: 'absolute', top: 10, right: 10, flexDirection: 'row', gap: 6 }}>
+            alvo de toque mínimo de 32×32 pra ficar confortável no dedo. */}
+        <View style={{ position: 'absolute', top: Theme.space.sm, right: Theme.space.sm, flexDirection: 'row', gap: 6 }}>
           {isOwner && onEdit && (
             <Pressable
               onPress={(e) => {
@@ -105,15 +117,18 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
               }}
               hitSlop={10}
               style={({ pressed }) => ({
-                backgroundColor: pressed ? 'rgba(30,20,18,0.75)' : 'rgba(30,20,18,0.55)',
-                borderRadius: 18,
-                padding: 7,
+                width: 30,
+                height: 30,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: pressed ? 'rgba(30,20,18,0.8)' : 'rgba(30,20,18,0.55)',
+                borderRadius: 15,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.22)',
+                borderColor: 'rgba(255,255,255,0.25)',
                 transform: [{ scale: pressed ? 0.88 : 1 }],
               })}
             >
-              <Ionicons name="pencil" size={15} color="#fff" />
+              <Ionicons name="pencil" size={14} color="#fff" />
             </Pressable>
           )}
           <Pressable
@@ -123,15 +138,18 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
             }}
             hitSlop={10}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? 'rgba(30,20,18,0.75)' : 'rgba(30,20,18,0.55)',
-              borderRadius: 18,
-              padding: 7,
+              width: 30,
+              height: 30,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: pressed ? 'rgba(30,20,18,0.8)' : 'rgba(30,20,18,0.55)',
+              borderRadius: 15,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.22)',
+              borderColor: 'rgba(255,255,255,0.25)',
               transform: [{ scale: pressed ? 0.88 : 1 }],
             })}
           >
-            <Ionicons name="share-social-outline" size={15} color="#fff" />
+            <Ionicons name="share-social-outline" size={14} color="#fff" />
           </Pressable>
           <Pressable
             onPress={(e) => {
@@ -140,21 +158,24 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
             }}
             hitSlop={10}
             style={({ pressed }) => ({
+              width: 30,
+              height: 30,
+              alignItems: 'center',
+              justifyContent: 'center',
               backgroundColor: pressed
-                ? 'rgba(30,20,18,0.75)'
+                ? 'rgba(30,20,18,0.8)'
                 : isFavorited
-                ? 'rgba(30,20,18,0.6)'
-                : 'rgba(30,20,18,0.4)',
-              borderRadius: 18,
-              padding: 7,
+                ? 'rgba(30,20,18,0.65)'
+                : 'rgba(30,20,18,0.45)',
+              borderRadius: 15,
               borderWidth: 1,
-              borderColor: isFavorited ? 'rgba(255,107,107,0.5)' : 'rgba(255,255,255,0.22)',
+              borderColor: isFavorited ? 'rgba(255,107,107,0.55)' : 'rgba(255,255,255,0.25)',
               transform: [{ scale: pressed ? 0.88 : 1 }],
             })}
           >
             <Ionicons
               name={isFavorited ? 'heart' : 'heart-outline'}
-              size={16}
+              size={15}
               color={isFavorited ? '#ff6b6b' : '#fff'}
             />
           </Pressable>
@@ -162,15 +183,12 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
       </View>
 
       {/* Conteúdo */}
-      <View style={{ paddingHorizontal: 14, paddingTop: 11, paddingBottom: 13 }}>
+      <View style={{ paddingHorizontal: Theme.space.md, paddingTop: Theme.space.sm + 1, paddingBottom: Theme.space.sm + 3 }}>
         <Text
           style={{
             color: dark ? '#fff' : Theme.light.text,
-            fontSize: 15,
-            fontWeight: '700',
-            lineHeight: 20,
+            ...Theme.type.subtitle,
             marginBottom: 6,
-            letterSpacing: 0.1,
           }}
           numberOfLines={2}
         >
@@ -182,9 +200,8 @@ function EventCardImpl({ event, onPress, onFavorite, isFavorited, isOwner = fals
           <Text
             style={{
               color: dark ? 'rgba(255,255,255,0.65)' : Theme.light.textMuted,
+              ...Theme.type.caption,
               fontSize: 11.5,
-              fontWeight: '500',
-              letterSpacing: 0.1,
             }}
             numberOfLines={1}
           >

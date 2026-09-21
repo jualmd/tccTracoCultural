@@ -99,7 +99,6 @@ export default function Home() {
       />
 
       <SafeAreaView style={{ flex: 1 }}>
-
         {/* Lista de eventos — o cabeçalho inteiro (hero, busca, categorias,
             "perto de você") entra como ListHeaderComponent do MESMO FlatList
             que renderiza os eventos, então a página rola de uma vez só. Antes
@@ -116,112 +115,97 @@ export default function Home() {
           onRefresh={refresh}
           ListHeaderComponent={
             <>
-        {/* ── Hero ── */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              alignSelf: 'flex-start',
-              backgroundColor: 'rgba(212,163,115,0.15)',
-              borderWidth: 1,
-              borderColor: 'rgba(212,163,115,0.3)',
-              borderRadius: Theme.radius.pill,
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-              marginBottom: 10,
-            }}
-          >
-            <Ionicons name="sparkles-outline" size={12} color={Theme.colors.accent} />
-            <Text
+        {/* ── Hero — reestruturado como linha flex (avatar/sino ao lado do
+            título) em vez de position:absolute por cima do texto. Com
+            absolute, se o título quebrasse diferente em telas menores o
+            avatar podia sobrepor o texto; em flex isso nunca acontece. ── */}
+        <View style={{ paddingHorizontal: Theme.space.lg, paddingTop: Theme.space.md, paddingBottom: Theme.space.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: Theme.space.sm }}>
+            <View
               style={{
-                color: Theme.colors.accent,
-                fontSize: 10.5,
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: 'rgba(212,163,115,0.15)',
+                borderWidth: 1,
+                borderColor: 'rgba(212,163,115,0.3)',
+                borderRadius: Theme.radius.pill,
+                paddingHorizontal: 12,
+                paddingVertical: 5,
               }}
             >
-              Sua agenda cultural
-            </Text>
+              <Ionicons name="sparkles-outline" size={12} color={Theme.colors.accent} />
+              <Text style={{ color: Theme.colors.accent, ...Theme.type.label, textTransform: 'uppercase' }}>
+                Sua agenda cultural
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Pressable
+                onPress={() => setNotificationsVisible(true)}
+                hitSlop={8}
+                style={({ pressed }) => ({
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.2)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.8 : 1,
+                })}
+              >
+                <Ionicons name="notifications" size={17} color="#fff" />
+                {naoLidas > 0 && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -2,
+                      right: -2,
+                      minWidth: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      paddingHorizontal: 3,
+                      backgroundColor: Theme.colors.danger,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 1.5,
+                      borderColor: Theme.colors.primaryDark,
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 9, fontWeight: '800' }}>
+                      {naoLidas > 9 ? '9+' : naoLidas}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: Theme.colors.accent,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '800', color: Theme.colors.primaryDark }}>
+                  {user?.nome?.charAt(0).toUpperCase() ?? '?'}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          <Text style={{ color: '#fff', fontSize: 26, fontWeight: '800', letterSpacing: -0.5, lineHeight: 31 }}>
+          <Text style={{ color: '#fff', ...Theme.type.display, fontSize: 27, lineHeight: 32 }}>
             Descubra o que{'\n'}
             <Text style={{ color: Theme.colors.accent }}>acontece perto de você</Text>
           </Text>
-
-          {/* Avatar + sininho no canto */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
-            <Pressable
-              onPress={() => setNotificationsVisible(true)}
-              hitSlop={8}
-              style={({ pressed }) => ({
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.2)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: pressed ? 0.8 : 1,
-              })}
-            >
-              <Ionicons name="notifications" size={17} color="#fff" />
-              {naoLidas > 0 && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: -2,
-                    right: -2,
-                    minWidth: 16,
-                    height: 16,
-                    borderRadius: 8,
-                    paddingHorizontal: 3,
-                    backgroundColor: Theme.colors.danger,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1.5,
-                    borderColor: Theme.colors.primaryDark,
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 9, fontWeight: '800' }}>
-                    {naoLidas > 9 ? '9+' : naoLidas}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: Theme.colors.accent,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '800', color: Theme.colors.primaryDark }}>
-                {user?.nome?.charAt(0).toUpperCase() ?? '?'}
-              </Text>
-            </View>
-          </View>
         </View>
 
         {/* ── Busca (glass, espelha .search-container) ── */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 14 }}>
+        <View style={{ paddingHorizontal: Theme.space.lg, marginBottom: Theme.space.md }}>
           <View
             style={{
               flexDirection: 'row',
