@@ -31,6 +31,11 @@ export type Evento = {
   idUsuarioFk?: number | null;
   destacado?: boolean;
   patrocinado?: boolean;
+  // Só vêm preenchidos quando o evento foi buscado via getEventoPorId
+  // (GET /eventos/{id}), que retorna esses dois campos extras junto do
+  // evento.
+  totalFavoritos?: number;
+  favoritadoPeloUsuario?: boolean;
 };
 
 export type Comentario = {

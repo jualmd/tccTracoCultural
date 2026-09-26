@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,8 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useFavorites } from '@/contexts/favorites-context';
-import { buscarUsuario } from '@/services/user-service';
+import { atualizarUsuario, buscarUsuario } from '@/services/user-service';
 import { listarMeusEventos } from '@/services/event-service';
+import { useGeoLocation } from '@/hooks/use-geo-location';
+import { NOMES_ESTADOS } from '@/constants/estados';
 import type { Evento } from '@/types/domain';
 
 type SectionButtonProps = {
@@ -167,9 +169,24 @@ export default function Profile() {
   const { user, setUser, logout } = useAuth();
   const router = useRouter();
 
+  // Não existe estado predefinido — se o usuário ainda não tem um estado
+  // salvo, tentamos descobrir o real via geolocalização do device (mesmo
+  // esquema do Perfil no web: geolocalização + reverse geocoding, com o
+  // detalhe de que lá é via navegador/Nominatim e aqui via GPS nativo).
+  const { uf: ufDetectado } = useGeoLocation();
+
   const loadMyEvents = useCallback(() => {
     listarMeusEventos().then(setMyEvents).catch(() => setMyEvents([]));
   }, []);
+
+  // Assim que a geolocalização devolve o UF real, preenche o perfil de
+  // quem ainda não tinha estado salvo e persiste, sem precisar que o
+  // usuário abra a edição pra isso — igual ao web.
+  useEffect(() => {
+    if (!user || user.estado || !ufDetectado) return;
+    setUser({ ...user, estado: ufDetectado });
+    atualizarUsuario(user.id, { estado: ufDetectado }).catch(() => {});
+  }, [user, ufDetectado, setUser]);
 
   useFocusEffect(
     useCallback(() => {
@@ -239,6 +256,12 @@ export default function Profile() {
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
                 {user?.email ?? '—'}
               </Text>
+              {user?.estado && (
+                <Text style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+                  📍 {NOMES_ESTADOS[user.estado] ?? user.estado}
+                  {NOMES_ESTADOS[user.estado] ? ` (${user.estado})` : ''}
+                </Text>
+              )}
               {user?.createdAt && (
                 <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
                   Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR')}

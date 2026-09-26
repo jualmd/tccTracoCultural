@@ -18,9 +18,24 @@ export async function listarEventos(filters?: EventFilters) {
   return Array.isArray(data) ? data : [];
 }
 
+// GET /eventos/{id} agora retorna { evento, totalFavoritos, favoritadoPeloUsuario }
+// em vez do evento "flat" direto (mesma mudança já refletida no web em
+// EventoDetalhe.jsx). Sem isso, `data` era o objeto wrapper inteiro sendo
+// tratado como se fosse o evento — daí o conteúdo do evento (nome,
+// descrição, imagem etc.) sumir na tela de detalhe.
+type EventoDetalheResponse = {
+  evento: Evento;
+  totalFavoritos?: number;
+  favoritadoPeloUsuario?: boolean;
+};
+
 export async function getEventoPorId(id: number) {
-  const { data } = await apiClient.get<Evento>(`/eventos/${id}`);
-  return data;
+  const { data } = await apiClient.get<EventoDetalheResponse>(`/eventos/${id}`);
+  return {
+    ...data.evento,
+    totalFavoritos: data.totalFavoritos ?? 0,
+    favoritadoPeloUsuario: Boolean(data.favoritadoPeloUsuario),
+  };
 }
 
 export async function listarMeusEventos() {
